@@ -2,6 +2,6 @@
 __pycache__/
 *.log
 tasks.json
-app.lock
+#app.lock
 .DS_Store
 config.json
