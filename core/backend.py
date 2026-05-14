@@ -195,9 +195,9 @@ class Backend:
         return None
 
     def fetch_emails(self):
-        # 检查是否在工作时间 (早8点到晚11点)
+        # 检查是否在工作时间 (早6点到晚11点)
         current_hour = datetime.now().hour
-        if current_hour < 8 or current_hour >= 23:
+        if current_hour < 6 or current_hour >= 23:
             logging.info(f"🌙 当前时间 {current_hour}:00，进入深夜休眠模式，暂停自动拉取")
             return self.load_local_tasks()
 
