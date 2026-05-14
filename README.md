@@ -48,21 +48,20 @@
 ### 1. 配置信息
 在 `config.json` 中填写你的邮箱授权码和 AI API Key（建议使用 DeepSeek，物美价廉）。
 
-### 2. 运行程序
+### 2. 运行程序（全自动化）
+
+无论你使用什么系统，我们都提供了**一键环境配置与启动**脚本：
 
 #### 🍎 macOS 用户
+直接运行项目目录下的 **`toggle.sh`**：
 ```bash
-# 建议使用虚拟环境
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-python3 main.py
+./toggle.sh
 ```
-或者直接使用 `招聘助手开关.app` 启动。
+*脚本会自动检查并配置 `venv` 环境、安装缺失依赖，并在后台静默启动助手。*
 
 #### 🪟 Windows 用户
 直接双击运行项目根目录下的 **`start_windows.bat`**。
-脚本会自动为你创建虚拟环境、安装所需依赖并启动程序，无需手动输入命令。
+*脚本会自动创建虚拟环境、安装依赖并启动程序，无需手动输入命令。*
 
 ## 📝 常见问题
 
