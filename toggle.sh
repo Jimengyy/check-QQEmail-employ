@@ -10,11 +10,20 @@ if [ -n "$PID" ]; then
     pkill -f "main.py"
     osascript -e 'display notification "🔴 招聘助手：已成功关闭" with title "状态提醒"'
 else
-    # 启动逻辑
-    if [ -d ".venv" ]; then
-        source .venv/bin/activate
+    # --- 启动逻辑：自动环境管理 ---
+    
+    # 1. 检查虚拟环境是否存在
+    if [ ! -d "venv" ]; then
+        echo "正在创建虚拟环境..."
+        python3 -m venv venv
     fi
-    # 确保在后台启动
+    
+    # 2. 激活并同步依赖
+    source venv/bin/activate
+    # 这里的 --quiet 是为了让启动更干净，只安装缺失的库
+    pip install --quiet -r requirements.txt
+    
+    # 3. 确保在后台启动
     nohup python3 main.py > /dev/null 2>&1 &
     osascript -e 'display notification "🟢 招聘助手：已在后台启动" with title "状态提醒"'
 fi
