@@ -17,18 +17,8 @@ if not IS_WIN:
 else:
     fcntl = None
 
-class API:
-    def __init__(self):
-        self.backend = Backend()
-
-    def fetch_data(self):
-        return self.backend.fetch_emails()
-    
-    def get_config(self):
-        return self.backend.config
-
-    def complete_task(self, task_id):
-        return self.backend.complete_task(task_id)
+import threading
+from server import start_server
 
 def check_singleton():
     """确保程序单实例运行"""
@@ -62,18 +52,16 @@ def start_app():
     
     # 持有文件句柄直到程序结束，防止锁被释放
     _lock_fp = check_singleton()
-    api = API()
     
-    # Get current directory
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    html_file = os.path.join(current_dir, 'web', 'index.html')
+    # 启动 Flask 服务
+    server_thread = threading.Thread(target=start_server, daemon=True)
+    server_thread.start()
     
     # Create window
     # Windows 下透明窗口可能需要特定配置，这里先尝试通用配置
     window = webview.create_window(
         '招聘助手',
-        url=html_file,
-        js_api=api,
+        url='http://127.0.0.1:5555/widget',
         width=350,
         height=600,
         transparent=True,

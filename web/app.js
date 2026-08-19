@@ -1,3 +1,16 @@
+function escapeHTML(str) {
+    if (!str) return '';
+    return str.replace(/[&<>'"]/g, 
+        tag => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[tag] || tag)
+    );
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const taskList = document.getElementById('task-list');
     const refreshBtn = document.getElementById('refresh-btn');
@@ -12,13 +25,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchData() {
         try {
-            if (window.pywebview && window.pywebview.api) {
-                const data = await window.pywebview.api.fetch_data();
+            const response = await fetch('/api/tasks');
+            if (response.ok) {
+                const data = await response.json();
                 renderTasks(data);
+            } else {
+                throw new Error('API error');
             }
         } catch (error) {
             console.error('Fetch error:', error);
-            pendingList.innerHTML = '<div class="loading">同步失败，请检查网络或配置</div>';
+            pendingList.innerHTML = '<div class="loading">同步失败，请检查服务状态</div>';
         }
         
         const now = new Date();
@@ -36,9 +52,9 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleCollapse(historyHeader, historyList);
 
     function renderTasks(allTasks) {
-        const pendingTasks = allTasks.filter(t => !t.completed);
-        const completedTasks = allTasks.filter(t => t.completed)
-            .sort((a, b) => new Date(b.completed_at) - new Date(a.completed_at));
+        const pendingTasks = allTasks.filter(t => t.status === 'approved');
+        const completedTasks = allTasks.filter(t => t.status === 'completed')
+            .sort((a, b) => new Date(b.completed_at || 0) - new Date(a.completed_at || 0));
 
         pendingCount.textContent = pendingTasks.length;
         historyCount.textContent = completedTasks.length;
@@ -71,16 +87,20 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (task.type.includes('Offer') || task.type.includes('录取')) typeClass = 'type-success';
         else if (task.type.includes('投递') || task.type.includes('资料') || task.type.includes('入职')) typeClass = 'type-info';
 
+        const safeCompany = escapeHTML(task.company);
+        const safeType = escapeHTML(task.type);
+        const safeTime = escapeHTML(task.time);
+
         return `
             <div class="task-item ${isHistory ? 'is-completed' : ''}" id="task-${task.id}">
                 ${task.urgent && !isHistory ? '<div class="urgent-indicator"></div>' : ''}
                 <div class="task-header">
-                    <span class="company-name">${task.company}</span>
-                    <span class="task-type ${typeClass}">${task.type}</span>
+                    <span class="company-name">${safeCompany}</span>
+                    <span class="task-type ${typeClass}">${safeType}</span>
                 </div>
-                <div class="task-time">${task.time}</div>
+                <div class="task-time">${safeTime}</div>
                 ${isHistory ? 
-                    `<div class="completed-tag">已完成 @ ${task.completed_at.split(' ')[1]}</div>` : 
+                    `<div class="completed-tag">已完成 @ ${escapeHTML(task.completed_at.split(' ')[1])}</div>` : 
                     `<button class="complete-btn" data-id="${task.id}" title="标记为完成">✓</button>`
                 }
             </div>
@@ -92,12 +112,22 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.onclick = async (e) => {
                 e.stopPropagation();
                 const taskId = btn.getAttribute('data-id');
-                const success = await window.pywebview.api.complete_task(taskId);
-                if (success) {
-                    const item = document.getElementById(`task-${taskId}`);
-                    item.style.opacity = '0';
-                    item.style.transform = 'scale(0.9)';
-                    setTimeout(() => fetchData(), 300);
+                try {
+                    const res = await fetch(`/api/tasks/${taskId}/status`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: 'completed' })
+                    });
+                    if (res.ok) {
+                        const item = document.getElementById(`task-${taskId}`);
+                        if (item) {
+                            item.style.opacity = '0';
+                            item.style.transform = 'scale(0.9)';
+                        }
+                        setTimeout(() => fetchData(), 300);
+                    }
+                } catch (err) {
+                    console.error(err);
                 }
             };
         });
@@ -114,16 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function init() {
         console.log("初始化程序...");
-        let intervalTime = 1200 * 1000; 
+        let intervalTime = 60000; // 本地拉取很轻量，每60秒拉取一次最新状态
 
-        try {
-            if (window.pywebview && window.pywebview.api) {
-                const config = await window.pywebview.api.get_config();
-                if (config && config.check_interval) {
-                    intervalTime = config.check_interval * 1000;
-                }
-            }
-        } catch (e) {}
 
         fetchData();
         setInterval(fetchData, intervalTime);

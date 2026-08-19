@@ -3,3 +3,4 @@ beautifulsoup4
 openai
 pyobjc-framework-AppKit; sys_platform == 'darwin'
 pyobjc-framework-Quartz; sys_platform == 'darwin'
+flask

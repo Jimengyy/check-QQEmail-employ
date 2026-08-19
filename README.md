@@ -2,7 +2,7 @@
 
 一个优雅、智能的跨平台桌面招聘信息聚合工具。它能自动从你的邮箱中拉取招聘邮件，利用 AI 技术进行深度解析，并将面试、笔试、测评等任务以高颜值的玻璃拟态 (Glassmorphism) UI 展示在桌面上。
 
-![Demo](https://via.placeholder.com/350x600/2c3e50/ffffff?text=Recruitment+Assistant+UI)
+![招聘助手工作流程说明图](assets/recruitment-assistant-flow.svg)
 
 ## ✨ 核心特性
 

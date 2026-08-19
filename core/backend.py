@@ -28,6 +28,8 @@ class Backend:
         self.config_path = config_path
         self.config = self.load_config()
         self.tasks_path = os.path.join(os.path.dirname(config_path), 'tasks.json')
+        self.sync_state_path = os.path.join(os.path.dirname(config_path), 'sync_state.json')
+        self.imap_server = self.config.get('imap_server', 'imap.qq.com')
         
         # 初始化 AI 引擎
         self.ai_conf = self.config.get('ai_config', {})
@@ -72,10 +74,41 @@ class Backend:
         if os.path.exists(self.tasks_path):
             try:
                 with open(self.tasks_path, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except:
+                    tasks = json.load(f)
+                    # 数据格式向后兼容，自动向新系统迁移
+                    for t in tasks:
+                        if 'status' not in t:
+                            if t.get('completed'):
+                                t['status'] = 'completed'
+                            else:
+                                t['status'] = 'approved'
+                    return tasks
+            except json.JSONDecodeError:
+                logging.error(f"❌ 任务文件 {self.tasks_path} 损坏，正在备份...")
+                try:
+                    os.rename(self.tasks_path, self.tasks_path + '.corrupted')
+                except Exception as e:
+                    logging.error(f"备份损坏的任务文件失败: {e}")
+                return []
+            except Exception as e:
+                logging.error(f"读取任务失败: {e}")
                 return []
         return []
+
+    def load_sync_state(self):
+        if os.path.exists(self.sync_state_path):
+            try:
+                with open(self.sync_state_path, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except: pass
+        return {"last_uid": 0}
+
+    def save_sync_state(self, state):
+        try:
+            with open(self.sync_state_path, 'w', encoding='utf-8') as f:
+                json.dump(state, f)
+        except Exception as e:
+            logging.error(f"保存 sync_state 失败: {e}")
 
     def save_local_tasks(self, tasks):
         try:
@@ -163,7 +196,8 @@ class Backend:
             # 如果存在 text 变量（说明 API 调用成功但解析失败），打印出原文以便调试
             if 'text' in locals():
                 logging.error(f"📄 AI 原始返回内容: \n{text}")
-            return None
+            # 向上抛出异常，防止程序误认为这封邮件是不相关的垃圾邮件
+            raise Exception(f"AI API 错误: {e}")
 
     def extract_info(self, subject, body, msg_id):
         logging.info(f"📩 正在对新邮件进行提取解析: 【{subject}】 (ID: {msg_id})")
@@ -185,6 +219,7 @@ class Backend:
                 "time": ai_result.get("time", "待定"),
                 "type": ai_result.get("type", "其它"),
                 "urgent": ai_result.get("urgent", False),
+                "status": "pending_review",
                 "created_at": datetime.now().strftime("%Y-%m-%d %H:%M")
             }
         
@@ -210,23 +245,43 @@ class Backend:
                 logging.warning("⚠️ 尝试拉取失败：未配置有效邮箱")
                 return self.load_local_tasks()
 
-            mail = imaplib.IMAP4_SSL("imap.qq.com")
+            mail = imaplib.IMAP4_SSL(self.imap_server)
             mail.login(email_addr, auth_code)
             mail.select("INBOX")
 
-            # 策略变更：使用 UID 搜索，避免邮件顺序变化导致 ID 错位
-            logging.info("正在获取所有未读邮件 (使用 UID 模式)...")
-            status, messages = mail.uid('search', None, 'UNSEEN')
-            if status == 'OK':
+            # 策略变更：记录上一次抓取的最大 UID，进行增量拉取，避免重复拉取
+            local_tasks = self.load_local_tasks()
+            sync_state = self.load_sync_state()
+            last_uid = sync_state.get('last_uid', 0)
+
+            # 兼容旧版本：如果 sync_state 为空，从 tasks 里找最大的 UID
+            if last_uid == 0:
+                for task in local_tasks:
+                    try:
+                        uid = int(task.get('id', 0))
+                        if uid > last_uid:
+                            last_uid = uid
+                    except ValueError:
+                        continue
+
+            if last_uid > 0:
+                logging.info(f"正在获取新邮件 (增量模式: UID > {last_uid})...")
+                status, messages = mail.uid('search', None, f'UID {last_uid + 1}:*')
+            else:
+                import datetime as dt
+                five_days_ago = (dt.datetime.now() - dt.timedelta(days=5)).strftime("%d-%b-%Y")
+                logging.info(f"初次运行或无历史记录，正在获取最近 5 天的数据 (SINCE {five_days_ago})...")
+                status, messages = mail.uid('search', None, 'SINCE', five_days_ago)
+                
+            if status == 'OK' and messages[0]:
                 all_mail_ids = messages[0].split()
             else:
-                logging.warning("无法获取未读邮件列表")
                 all_mail_ids = []
             
-            logging.info(f"📡 扫描结果：当前收件箱共有 {len(all_mail_ids)} 封未读邮件")
+            logging.info(f"📡 扫描结果：本次符合条件的待处理邮件共 {len(all_mail_ids)} 封")
 
-            local_tasks = self.load_local_tasks()
             new_count = 0
+            max_uid_in_batch = last_uid
             
             for m_id in all_mail_ids:
                 m_id_str = m_id.decode()
@@ -250,11 +305,27 @@ class Backend:
                 msg = email.message_from_bytes(data[0][1])
                 body = self.parse_email_content(msg)
                 
-                new_task = self.extract_info(subject, body, m_id_str)
-                if new_task:
-                    local_tasks.append(new_task)
-                    new_count += 1
+                try:
+                    new_task = self.extract_info(subject, body, m_id_str)
+                    if new_task:
+                        local_tasks.append(new_task)
+                        new_count += 1
+                        
+                    # 只有在解析没有发生 API 异常时，才将该邮件标记为已处理
+                    try:
+                        uid_int = int(m_id_str)
+                        if uid_int > max_uid_in_batch:
+                            max_uid_in_batch = uid_int
+                    except: pass
+
+                except Exception as e:
+                    logging.error(f"⚠️ 解析中断，可能是 API 欠费或网络错误。停止处理剩余邮件，下次将重试。({e})")
+                    break
             
+            if max_uid_in_batch > last_uid:
+                sync_state['last_uid'] = max_uid_in_batch
+                self.save_sync_state(sync_state)
+
             if new_count > 0:
                 self.save_local_tasks(local_tasks)
                 logging.info(f"✅ 同步完成，新抓取到 {new_count} 条任务")
@@ -273,13 +344,14 @@ class Backend:
             logging.error(f"邮件抓取失败: {e}")
             return self.load_local_tasks()
 
-    def complete_task(self, task_id):
+    def update_task_status(self, task_id, status):
         tasks = self.load_local_tasks()
         found = False
         for t in tasks:
             if str(t['id']) == str(task_id):
-                t['completed'] = True
-                t['completed_at'] = datetime.now().strftime("%Y-%m-%d %H:%M")
+                t['status'] = status
+                if status == 'completed':
+                    t['completed_at'] = datetime.now().strftime("%Y-%m-%d %H:%M")
                 found = True
                 break
         
