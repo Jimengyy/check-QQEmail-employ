@@ -1,9 +1,27 @@
-.venv/
+# Python
 __pycache__/
-*.log
-tasks.json
-#app.lock
-.DS_Store
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Local Configurations & Credentials
 config.json
-architecture_plan.md
-sync_state.json
+
+# Local Runtime & Locks
+*.log
+*.lock
+app.lock
+client/app.lock
+
+# Build & Dist Artifacts
+dist/
+build/
+*.dmg
+
+# System
+.DS_Store

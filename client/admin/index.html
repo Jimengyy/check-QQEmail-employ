@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OfferPilot - 招聘管理后台</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="logo-area">
+                <h2>OfferPilot</h2>
+                <span class="version-tag">V3.0 云原生</span>
+            </div>
+            <nav>
+                <a href="#" class="active" data-target="review-view">审核大厅 <span class="badge" id="review-badge">0</span></a>
+                <a href="#" data-target="dashboard-view">招聘进度看板</a>
+                <a href="#" id="admin-settings-nav">⚙️ 云数据库配置</a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="cloud-status">
+                    <span class="status-dot-sm" id="admin-status-dot"></span> <span id="admin-status-text">云端中枢已连接</span>
+                </div>
+            </div>
+        </aside>
+
+        <main class="content">
+            <!-- 审核页面 -->
+            <section id="review-view" class="view active">
+                <header>
+                    <div class="header-title">
+                        <h1>待审核任务</h1>
+                        <p class="subtitle">AI 识别新邮件待办，可确认推送到桌面或标记误报</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="loadReviews()">刷新</button>
+                </header>
+                <div class="card">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>抓取时间</th>
+                                <th>公司</th>
+                                <th>类型</th>
+                                <th>任务时间</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="review-tbody">
+                            <!-- JS injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 进度看板页面 -->
+            <section id="dashboard-view" class="view">
+                <header>
+                    <div class="header-title">
+                        <h1>招聘进度看板</h1>
+                        <p class="subtitle">云端多维度求职进度聚合与历史追踪</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="loadDashboard()">刷新</button>
+                </header>
+                <div class="card">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>投递公司</th>
+                                <th>最新进展类型</th>
+                                <th>最新进展时间</th>
+                                <th>总交互次数</th>
+                                <th>当前状态</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboard-tbody">
+                            <!-- JS injected -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <!-- 管理台设置弹窗 -->
+        <div class="modal-overlay" id="admin-setup-modal" style="display:none;">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3>⚙️ Supabase 云数据库配置</h3>
+                    <p class="modal-subtitle">配置或修改云端连接凭据</p>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Supabase Project URL</label>
+                        <input type="text" id="admin-cfg-url" placeholder="https://xxxx.supabase.co" />
+                    </div>
+                    <div class="form-group">
+                        <label>Anon Public Key (公开公钥)</label>
+                        <input type="password" id="admin-cfg-key" placeholder="sb_publishable_..." />
+                    </div>
+                    <div id="admin-cfg-msg" style="font-size:0.85rem;margin-bottom:10px;min-height:18px;"></div>
+                    <div class="modal-actions">
+                        <button id="admin-btn-save-cfg" class="btn btn-primary">保存配置并连接</button>
+                        <button id="admin-btn-close-cfg" class="btn" style="background:#475569;color:#fff;">取消</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="supabase.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

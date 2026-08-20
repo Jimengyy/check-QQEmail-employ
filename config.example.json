@@ -1,0 +1,6 @@
+{
+    "supabase": {
+        "url": "YOUR_SUPABASE_PROJECT_URL",
+        "publishable_key": "YOUR_SUPABASE_PUBLISHABLE_ANON_KEY"
+    }
+}

@@ -1,6 +1,4 @@
 pywebview
-beautifulsoup4
-openai
+flask
 pyobjc-framework-AppKit; sys_platform == 'darwin'
 pyobjc-framework-Quartz; sys_platform == 'darwin'
-flask

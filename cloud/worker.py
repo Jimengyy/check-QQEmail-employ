@@ -19,38 +19,57 @@ logging.basicConfig(
 
 class CloudSyncWorker:
     def __init__(self):
-        # 1. 尝试从本地 config.json 读取默认值 (本地测试环境兼容)
+        # 1. 尝试从本地 config.json 读取 (支持本地手动调试测试)
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        config_path = os.path.join(current_dir, 'config.json')
+        config_path = os.path.join(current_dir, '..', 'config.json')
+        if not os.path.exists(config_path):
+            config_path = os.path.join(current_dir, 'config.json')
         config = {}
         if os.path.exists(config_path):
             try:
                 with open(config_path, 'r', encoding='utf-8') as f:
                     config = json.load(f)
             except Exception as e:
-                logging.warning(f"读取 config.json 失败 (将完全依赖环境变量): {e}")
+                logging.warning(f"读取本地 config.json 失败: {e}")
 
-        # 2. 从环境变量读取敏感配置 (优先使用环境变量，支持 GitHub Actions)
+        # 2. 显式读取环境变量 (优先读取环境变量，支持 GitHub Actions)
+        ai_conf = config.get("ai_config", {})
+        sb_conf = config.get("supabase_config", {})
+
         self.email_addr = os.getenv("EMAIL_USER", config.get("email"))
         self.auth_code = os.getenv("EMAIL_AUTH_CODE", config.get("auth_code"))
         self.imap_server = os.getenv("IMAP_SERVER", config.get("imap_server", "imap.qq.com"))
-        
-        ai_conf = config.get("ai_config", {})
+
         self.api_key = os.getenv("DEEPSEEK_API_KEY", ai_conf.get("api_key"))
-        self.api_base = os.getenv("DEEPSEEK_API_BASE", ai_conf.get("api_base", "https://api.deepseek.com/v1"))
+        self.api_base = os.getenv("DEEPSEEK_API_BASE", ai_conf.get("api_base", "https://api.deepseek.com")).rstrip("/")
         self.model_name = os.getenv("DEEPSEEK_MODEL", ai_conf.get("model", "deepseek-chat"))
-        
-        sb_conf = config.get("supabase_config", {})
+
         self.supabase_url = os.getenv("SUPABASE_URL", sb_conf.get("url", "")).rstrip("/")
         self.supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", sb_conf.get("secret_key", ""))
 
-        # 校验关键配置
-        if not self.email_addr or not self.auth_code:
-            raise ValueError("❌ 缺少邮箱配置: 请设置 EMAIL_USER 和 EMAIL_AUTH_CODE 环境变量")
-        if not self.api_key:
-            raise ValueError("❌ 缺少 AI 配置: 请设置 DEEPSEEK_API_KEY 环境变量")
-        if not self.supabase_url or not self.supabase_key:
-            raise ValueError("❌ 缺少 Supabase 配置: 请设置 SUPABASE_URL 和 SUPABASE_SERVICE_ROLE_KEY 环境变量")
+        # 3. 严格校验所有必需参数，杜绝未定义
+        missing = []
+        if not self.email_addr: missing.append("EMAIL_USER")
+        if not self.auth_code: missing.append("EMAIL_AUTH_CODE")
+        if not self.imap_server: missing.append("IMAP_SERVER")
+        if not self.api_key: missing.append("DEEPSEEK_API_KEY")
+        if not self.api_base: missing.append("DEEPSEEK_API_BASE")
+        if not self.model_name: missing.append("DEEPSEEK_MODEL")
+        if not self.supabase_url: missing.append("SUPABASE_URL")
+        if not self.supabase_key: missing.append("SUPABASE_SERVICE_ROLE_KEY")
+
+        if missing:
+            raise ValueError(f"❌ 启动失败: 缺少必需配置项 [{', '.join(missing)}]，请在环境变量或 GitHub Secrets 中显式配置！")
+
+        # 打印显式配置概览 (安全脱敏)
+        masked_email = self.email_addr[:3] + "***@" + self.email_addr.split("@")[-1] if "@" in self.email_addr else "***"
+        logging.info("========================================")
+        logging.info("⚙️  云端 Worker 配置已显式加载成功:")
+        logging.info(f"   ├─ 邮箱账号: {masked_email} (IMAP: {self.imap_server})")
+        logging.info(f"   ├─ AI 接口地址: {self.api_base}")
+        logging.info(f"   ├─ AI 选用模型: {self.model_name}")
+        logging.info(f"   └─ 云端数据库: {self.supabase_url}")
+        logging.info("========================================")
 
         # 初始化 OpenAI/DeepSeek 客户端
         self.ai_client = OpenAI(

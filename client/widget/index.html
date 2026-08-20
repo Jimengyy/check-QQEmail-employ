@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OfferPilot - 招聘智能助手</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="widget-container" id="app">
+        <header>
+            <div class="header-left">
+                <h1>招聘任务</h1>
+                <div id="status-dot" class="online" title="云端连接正常 (Realtime 监听中)"></div>
+            </div>
+            <div class="header-actions">
+                <button id="settings-btn" class="icon-btn" title="配置数据库连接">⚙️</button>
+                <a href="http://127.0.0.1:5555/" target="_blank" class="icon-btn" title="打开审核大厅与看板">📊</a>
+                <button id="quit-btn" class="icon-btn quit-btn" title="退出挂件">✕</button>
+            </div>
+        </header>
+
+        <div class="main-content" id="main-content">
+            <div class="section-header" id="pending-header">
+                <h2>待处理</h2>
+                <span class="count-badge" id="pending-count">0</span>
+            </div>
+            <div class="task-list" id="task-list">
+                <div class="loading">正在连接云端中枢...</div>
+            </div>
+
+            <div class="section-header" id="history-header">
+                <h2>历史记录</h2>
+                <span class="count-badge" id="history-count">0</span>
+            </div>
+            <div class="task-list history-list collapsed" id="history-list">
+                <!-- Completed tasks will be injected here -->
+            </div>
+        </div>
+
+        <footer>
+            <span id="last-sync">最后同步: --:--</span>
+            <button id="refresh-btn" title="手动刷新">↻</button>
+        </footer>
+
+        <!-- 首次使用配置向导 / 设置弹窗 -->
+        <div class="modal-overlay" id="setup-modal">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <div class="modal-logo">🚀</div>
+                    <h3>欢迎使用 OfferPilot</h3>
+                    <p class="modal-subtitle">仅需配置 Supabase 云数据库即可开始同步</p>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Supabase Project URL</label>
+                        <input type="text" id="cfg-url" placeholder="https://xxxx.supabase.co" autocomplete="off" spellcheck="false" />
+                    </div>
+                    <div class="form-group">
+                        <label>Anon Public Key (公开公钥)</label>
+                        <input type="password" id="cfg-key" placeholder="sb_publishable_..." autocomplete="off" spellcheck="false" />
+                    </div>
+                    <div id="cfg-msg" class="cfg-msg"></div>
+                    <div class="modal-actions">
+                        <button id="btn-save-cfg" class="btn-primary">⚡️ 保存并立即连接</button>
+                        <button id="btn-close-cfg" class="btn-secondary" style="display: none;">关闭</button>
+                    </div>
+                    <div class="modal-footer-tip">
+                        <span>💡 参数可在 Supabase 控制台 <b>Project Settings ➡️ API</b> 中复制获取</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="supabase.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
