@@ -1,0 +1,39 @@
+name: Recruitment Email Sync
+
+on:
+  schedule:
+    # 每天北京时间 08:00 ~ 22:30 每 30 分钟自动运行一次
+    - cron: '*/30 0-14 * * *'
+  # 支持在 GitHub 网页上手动点击 "Run workflow" 一键触发测试
+  workflow_dispatch:
+
+jobs:
+  sync-emails:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install beautifulsoup4 openai httpx
+
+      - name: Run Cloud Sync Worker
+        env:
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_AUTH_CODE: ${{ secrets.EMAIL_AUTH_CODE }}
+          IMAP_SERVER: ${{ secrets.IMAP_SERVER || 'imap.qq.com' }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DEEPSEEK_API_BASE: ${{ secrets.DEEPSEEK_API_BASE || 'https://api.deepseek.com/v1' }}
+          DEEPSEEK_MODEL: ${{ secrets.DEEPSEEK_MODEL || 'deepseek-chat' }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          python worker.py
