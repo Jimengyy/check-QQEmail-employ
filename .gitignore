@@ -1,9 +1,11 @@
 .venv/
+venv/
 __pycache__/
+*.pyc
 *.log
-tasks.json
-#app.lock
+*.lock
+app.lock
+client/app.lock
 .DS_Store
 config.json
-architecture_plan.md
-sync_state.json
+dist/

@@ -1,0 +1,228 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="820" viewBox="0 0 1440 820" role="img" aria-labelledby="title desc">
+  <title id="title">招聘智能助手 V3.0 云原生双端架构全景流转图</title>
+  <desc id="desc">展示从云端 7x24h 邮件抓取与 DeepSeek AI 解析，到 Supabase Realtime 广播中枢，再到 Mac 原生桌面挂件与 Web 审核大厅的完整闭环。</desc>
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="50%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </linearGradient>
+
+    <!-- Card Gradients -->
+    <linearGradient id="cardGrad1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(30, 41, 59, 0.85)"/>
+      <stop offset="100%" stop-color="rgba(15, 23, 42, 0.95)"/>
+    </linearGradient>
+
+    <linearGradient id="glowBlue" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+
+    <linearGradient id="glowPurple" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#ec4899"/>
+    </linearGradient>
+
+    <linearGradient id="glowGreen" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+
+    <!-- Drop Shadow Filter -->
+    <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+
+    <filter id="neonGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Arrow Marker -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#38bdf8"/>
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#c084fc"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#34d399"/>
+    </marker>
+
+    <style>
+      .main-title { font: 900 40px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; fill: #ffffff; letter-spacing: -0.5px; }
+      .main-subtitle { font: 500 18px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; fill: #94a3b8; }
+      .step-badge { font: 800 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; fill: #38bdf8; letter-spacing: 1.5px; }
+      .card-h1 { font: 700 22px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; fill: #f8fafc; }
+      .card-desc { font: 400 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; fill: #cbd5e1; line-height: 1.6; }
+      .code-tag { font: 600 12px "SF Mono", Menlo, Consolas, monospace; fill: #38bdf8; }
+      .status-pill { font: 700 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; fill: #10b981; }
+    </style>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="1440" height="820" fill="url(#bgGrad)"/>
+
+  <!-- Decorative Background Light Orbs -->
+  <circle cx="200" cy="150" r="260" fill="#38bdf8" opacity="0.08" filter="url(#neonGlow)"/>
+  <circle cx="720" cy="400" r="320" fill="#6366f1" opacity="0.1" filter="url(#neonGlow)"/>
+  <circle cx="1240" cy="650" r="280" fill="#ec4899" opacity="0.08" filter="url(#neonGlow)"/>
+
+  <!-- Top Title Banner -->
+  <g transform="translate(80, 70)">
+    <rect x="0" y="-8" width="8" height="64" rx="4" fill="url(#glowBlue)"/>
+    <text x="24" y="28" class="main-title">🚀 招聘智能助手 V3.0 · 云原生架构流转图</text>
+    <text x="24" y="58" class="main-subtitle">7x24h 云端自动化提取 + Supabase 实时中枢 + Mac 原生透明挂件 + 网页审核看板</text>
+  </g>
+
+  <!-- ==================== STEP 1: CLOUD WORKER ==================== -->
+  <g transform="translate(80, 180)">
+    <rect width="280" height="480" rx="20" fill="url(#cardGrad1)" stroke="#334155" stroke-width="1.5" filter="url(#cardShadow)"/>
+    <rect x="2" y="2" width="276" height="6" rx="3" fill="url(#glowBlue)"/>
+
+    <!-- Icon Area -->
+    <rect x="24" y="24" width="56" height="56" rx="14" fill="#0369a1" fill-opacity="0.3" stroke="#38bdf8" stroke-width="1.5"/>
+    <text x="36" y="60" font-size="28">☁️</text>
+
+    <text x="92" y="44" class="step-badge">STEP 01</text>
+    <text x="92" y="68" class="card-h1">云端自动抓取</text>
+
+    <!-- Details Box -->
+    <rect x="20" y="100" width="240" height="350" rx="14" fill="#0f172a" stroke="#1e293b"/>
+    
+    <g transform="translate(36, 128)">
+      <text y="0" class="card-desc" font-weight="700" fill="#38bdf8">⏰ GitHub Actions 调度</text>
+      <text y="24" class="card-desc">• 白天每 30 分钟定时拉起</text>
+      <text y="48" class="card-desc">• 关机休眠亦不漏信 (0 成本)</text>
+      <text y="72" class="card-desc">• UID 增量书签，杜绝重复</text>
+      
+      <line x1="0" y1="92" x2="208" y2="92" stroke="#334155" stroke-dasharray="4"/>
+
+      <text y="120" class="card-desc" font-weight="700" fill="#a78bfa">🤖 DeepSeek AI 引擎</text>
+      <text y="144" class="card-desc">• 结构化 JSON Output 模式</text>
+      <text y="168" class="card-desc">• 提取公司/时间/笔面试类型</text>
+      <text y="192" class="card-desc">• 智能研判 48h 紧急任务</text>
+
+      <line x1="0" y1="212" x2="208" y2="212" stroke="#334155" stroke-dasharray="4"/>
+
+      <text y="240" class="code-tag">status: "pending"</text>
+      <text y="264" class="card-desc">以未审核状态写入云数据库</text>
+    </g>
+  </g>
+
+  <!-- Flow Arrow 1 -> 2 -->
+  <path d="M 370 420 L 415 420" fill="none" stroke="#38bdf8" stroke-width="3" stroke-dasharray="6,4" marker-end="url(#arrow)"/>
+
+  <!-- ==================== STEP 2: SUPABASE REALTIME ==================== -->
+  <g transform="translate(425, 180)">
+    <rect width="280" height="480" rx="20" fill="url(#cardGrad1)" stroke="#4338ca" stroke-width="2" filter="url(#cardShadow)"/>
+    <rect x="2" y="2" width="276" height="6" rx="3" fill="url(#glowPurple)"/>
+
+    <!-- Icon Area -->
+    <rect x="24" y="24" width="56" height="56" rx="14" fill="#4338ca" fill-opacity="0.3" stroke="#818cf8" stroke-width="1.5"/>
+    <text x="36" y="60" font-size="28">⚡️</text>
+
+    <text x="92" y="44" class="step-badge" fill="#818cf8">STEP 02</text>
+    <text x="92" y="68" class="card-h1">Supabase 中枢</text>
+
+    <!-- Details Box -->
+    <rect x="20" y="100" width="240" height="350" rx="14" fill="#0f172a" stroke="#1e293b"/>
+
+    <g transform="translate(36, 128)">
+      <text y="0" class="card-desc" font-weight="700" fill="#c084fc">🗄️ PostgreSQL 核心存储</text>
+      <text y="24" class="card-desc">• tasks 表持久化招聘全量数据</text>
+      <text y="48" class="card-desc">• sync_state 记录全局 UID 书签</text>
+      
+      <line x1="0" y1="68" x2="208" y2="68" stroke="#334155" stroke-dasharray="4"/>
+
+      <text y="96" class="card-desc" font-weight="700" fill="#38bdf8">📡 Realtime WebSocket</text>
+      <text y="120" class="card-desc">• Postgres CDC 变动捕获</text>
+      <text y="144" class="card-desc">• 毫秒级全端广播推送</text>
+      <text y="168" class="card-desc">• 多端数据免刷新瞬时同步</text>
+
+      <line x1="0" y1="188" x2="208" y2="188" stroke="#334155" stroke-dasharray="4"/>
+
+      <text y="216" class="card-desc" font-weight="700" fill="#34d399">🛡️ RLS 行级安全防火墙</text>
+      <text y="240" class="card-desc">• 客户端仅拥有限定更新权限</text>
+      <text y="264" class="card-desc">• 彻底杜绝恶意删库与越权</text>
+    </g>
+  </g>
+
+  <!-- Flow Split Arrows: Center to Top-Right & Bottom-Right -->
+  <path d="M 715 350 C 745 350, 755 290, 785 290" fill="none" stroke="#c084fc" stroke-width="3" stroke-dasharray="6,4" marker-end="url(#arrowPurple)"/>
+  <path d="M 715 490 C 745 490, 755 550, 785 550" fill="none" stroke="#34d399" stroke-width="3" stroke-dasharray="6,4" marker-end="url(#arrowGreen)"/>
+
+  <!-- ==================== STEP 3: WEB ADMIN (REVIEW HALL) ==================== -->
+  <g transform="translate(795, 120)">
+    <rect width="280" height="265" rx="20" fill="url(#cardGrad1)" stroke="#334155" stroke-width="1.5" filter="url(#cardShadow)"/>
+    <rect x="2" y="2" width="276" height="5" rx="2.5" fill="url(#glowPurple)"/>
+
+    <rect x="20" y="20" width="44" height="44" rx="12" fill="#6b21a8" fill-opacity="0.3" stroke="#c084fc" stroke-width="1.5"/>
+    <text x="30" y="50" font-size="22">🖥️</text>
+
+    <text x="76" y="36" class="step-badge" fill="#c084fc">STEP 03</text>
+    <text x="76" y="58" class="card-h1" font-size="19px">网页端 · 审核大厅</text>
+
+    <g transform="translate(24, 88)">
+      <text y="0" class="card-desc" font-weight="700" fill="#e2e8f0">http://127.0.0.1:5555/</text>
+      <text y="24" class="card-desc">1. 审核流转：过滤非关键邮件</text>
+      <text y="48" class="card-desc">2. 点击【通过展示】</text>
+      <text y="72" class="code-tag">status 变为 "approved"</text>
+      <text y="96" class="card-desc">3. 进度看板：聚合公司交互历史</text>
+    </g>
+  </g>
+
+  <!-- Flow Arrow: Admin -> Widget (Approved Broadcast) -->
+  <path d="M 935 395 L 935 440 C 935 460, 1075 460, 1145 460" fill="none" stroke="#34d399" stroke-width="2.5" stroke-dasharray="4,4" marker-end="url(#arrowGreen)"/>
+
+  <!-- ==================== STEP 4: MAC DESKTOP WIDGET ==================== -->
+  <g transform="translate(795, 420)">
+    <rect width="280" height="265" rx="20" fill="url(#cardGrad1)" stroke="#059669" stroke-width="2" filter="url(#cardShadow)"/>
+    <rect x="2" y="2" width="276" height="5" rx="2.5" fill="url(#glowGreen)"/>
+
+    <rect x="20" y="20" width="44" height="44" rx="12" fill="#065f46" fill-opacity="0.3" stroke="#34d399" stroke-width="1.5"/>
+    <text x="30" y="50" font-size="22">💻</text>
+
+    <text x="76" y="36" class="step-badge" fill="#34d399">STEP 04</text>
+    <text x="76" y="58" class="card-h1" font-size="19px">Mac 桌面原生挂件</text>
+
+    <g transform="translate(24, 88)">
+      <text y="0" class="card-desc" font-weight="700" fill="#34d399">仅展示已审核任务 (approved)</text>
+      <text y="24" class="card-desc">• 玻璃拟态、呼吸灯紧急提醒</text>
+      <text y="48" class="card-desc">• Dock 栏隐藏、桌面最底层固定</text>
+      <text y="72" class="card-desc">• 桌面一键【✓】打勾完成</text>
+      <text y="96" class="code-tag">status 变为 "completed"</text>
+    </g>
+  </g>
+
+  <!-- ==================== STEP 5: MOBILE EXTENSION (FUTURE) ==================== -->
+  <g transform="translate(1115, 270)">
+    <rect width="245" height="300" rx="20" fill="url(#cardGrad1)" stroke="#334155" stroke-width="1.5" stroke-dasharray="6,4" filter="url(#cardShadow)"/>
+
+    <rect x="20" y="20" width="44" height="44" rx="12" fill="#334155" fill-opacity="0.4" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="30" y="50" font-size="22">📱</text>
+
+    <text x="76" y="36" class="step-badge" fill="#94a3b8">EXTEND</text>
+    <text x="76" y="58" class="card-h1" font-size="18px">手机端独立 App</text>
+
+    <g transform="translate(24, 96)">
+      <text y="0" class="card-desc" font-weight="700" fill="#cbd5e1">🤖 Android + 🍎 iOS</text>
+      <text y="28" class="card-desc">• 基于 Capacitor 极速构建</text>
+      <text y="52" class="card-desc">• 手机直连 Supabase 云端</text>
+      <text y="76" class="card-desc">• 无论出门在途，随时审批</text>
+      <text y="100" class="card-desc">• 全端数据永久实时互通</text>
+    </g>
+  </g>
+
+  <!-- Bottom Info Footer Bar -->
+  <g transform="translate(80, 720)">
+    <rect width="1280" height="48" rx="12" fill="#1e293b" fill-opacity="0.6" stroke="#334155"/>
+    <circle cx="28" cy="24" r="6" fill="#10b981"/>
+    <text x="44" y="29" class="card-desc" font-weight="600" fill="#94a3b8">🛡️ 安全规范：敏感账密（邮箱授权码 / DeepSeek Key / Supabase Super Key）100% 隔离保存在 GitHub Secrets，客户端安装包零机密泄漏风险。</text>
+  </g>
+</svg>

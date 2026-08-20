@@ -2,7 +2,7 @@ name: Recruitment Email Sync
 
 on:
   schedule:
-    # 每天北京时间 08:00 ~ 22:30 每 30 分钟自动运行一次
+    # 每天北京时间 08:00 ~ 22:30 每 30 分钟自动运行一次 (UTC 00:00 ~ 14:30)
     - cron: '*/30 0-14 * * *'
   # 支持在 GitHub 网页上手动点击 "Run workflow" 一键触发测试
   workflow_dispatch:
@@ -27,13 +27,16 @@ jobs:
 
       - name: Run Cloud Sync Worker
         env:
+          # 🔒 核心机密 (从 GitHub Secrets 显式注入)
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_AUTH_CODE: ${{ secrets.EMAIL_AUTH_CODE }}
-          IMAP_SERVER: ${{ secrets.IMAP_SERVER || 'imap.qq.com' }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-          DEEPSEEK_API_BASE: ${{ secrets.DEEPSEEK_API_BASE || 'https://api.deepseek.com/v1' }}
-          DEEPSEEK_MODEL: ${{ secrets.DEEPSEEK_MODEL || 'deepseek-chat' }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+          # ⚙️ 显式服务参数 (遵循官方最新规范，无隐式回退)
+          IMAP_SERVER: "imap.qq.com"
+          DEEPSEEK_API_BASE: "https://api.deepseek.com"
+          DEEPSEEK_MODEL: "deepseek-chat"
         run: |
-          python worker.py
+          python cloud/worker.py

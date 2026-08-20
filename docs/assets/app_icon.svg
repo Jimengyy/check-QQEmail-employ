@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="50%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#0284c7"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255, 255, 255, 0.25)"/>
+      <stop offset="100%" stop-color="rgba(255, 255, 255, 0.05)"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <linearGradient id="neonGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="24" stdDeviation="32" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="20" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- macOS Big Sur Squircle Base -->
+  <rect x="96" y="96" width="832" height="832" rx="185" fill="url(#bgGrad)" filter="url(#shadow)"/>
+
+  <!-- Inner Subtle Border -->
+  <rect x="96" y="96" width="832" height="832" rx="185" fill="none" stroke="rgba(255, 255, 255, 0.2)" stroke-width="6"/>
+
+  <!-- Background Decorative Glowing Rings -->
+  <circle cx="512" cy="512" r="260" fill="none" stroke="url(#neonGlow)" stroke-width="4" opacity="0.4" stroke-dasharray="20, 10"/>
+  <circle cx="512" cy="512" r="340" fill="none" stroke="#38bdf8" stroke-width="2" opacity="0.25"/>
+
+  <!-- Radar Scan Beam -->
+  <path d="M 512 512 L 720 320 A 260 260 0 0 0 512 252 Z" fill="url(#neonGlow)" opacity="0.2"/>
+
+  <!-- Glassmorphism Briefcase / Mail Core Icon -->
+  <g transform="translate(256, 276)" filter="url(#shadow)">
+    <!-- Briefcase Body -->
+    <rect x="30" y="100" width="440" height="300" rx="40" fill="url(#cardGrad)" stroke="rgba(255, 255, 255, 0.4)" stroke-width="6" backdrop-filter="blur(20px)"/>
+    
+    <!-- Briefcase Handle -->
+    <path d="M 180 100 V 50 C 180 30, 320 30, 320 50 V 100" fill="none" stroke="url(#neonGlow)" stroke-width="20" stroke-linecap="round"/>
+    
+    <!-- Floating Envelope Accent -->
+    <path d="M 60 140 L 250 270 L 440 140" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+    
+    <!-- Golden Offer Badge / Star of Success -->
+    <circle cx="380" cy="340" r="54" fill="url(#goldGrad)" filter="url(#glow)"/>
+    <path d="M 380 308 L 391 332 L 417 334 L 397 351 L 403 376 L 380 362 L 357 376 L 363 351 L 343 334 L 369 332 Z" fill="#ffffff"/>
+    
+    <!-- Lightning Fast Indicator -->
+    <path d="M 120 340 L 140 310 L 130 310 L 145 280 L 125 315 L 135 315 Z" fill="#38bdf8" filter="url(#glow)"/>
+  </g>
+
+  <!-- Sparkles -->
+  <circle cx="240" cy="220" r="10" fill="#38bdf8" filter="url(#glow)"/>
+  <circle cx="780" cy="260" r="14" fill="#fbbf24" filter="url(#glow)"/>
+  <circle cx="750" cy="720" r="8" fill="#818cf8" filter="url(#glow)"/>
+</svg>

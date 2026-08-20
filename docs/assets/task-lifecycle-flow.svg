@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="540" viewBox="0 0 1440 540" role="img" aria-labelledby="title desc">
+  <title id="title">招聘助手 V3.0 任务状态全生命周期流转图</title>
+  <desc id="desc">展示从邮件抓取进入 pending 状态，到 Web 审核大厅流转为 approved/rejected，再通过 Realtime WebSocket 推送到桌面挂件完成 completed 归档的全过程。</desc>
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="50%" stop-color="#161b33"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </linearGradient>
+
+    <linearGradient id="cardGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(30, 41, 59, 0.9)"/>
+      <stop offset="100%" stop-color="rgba(15, 23, 42, 0.95)"/>
+    </linearGradient>
+
+    <linearGradient id="glowBlue" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+
+    <linearGradient id="glowGreen" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#34d399"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+
+    <linearGradient id="glowRed" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#f87171"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#38bdf8"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#34d399"/>
+    </marker>
+    <marker id="arrowRed" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#f87171"/>
+    </marker>
+
+    <style>
+      .title { font: 900 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; fill: #ffffff; }
+      .subtitle { font: 500 15px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; fill: #94a3b8; }
+      .state-tag { font: 800 14px "SF Mono", Menlo, monospace; fill: #38bdf8; }
+      .state-title { font: 700 20px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; fill: #f8fafc; }
+      .desc { font: 400 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; fill: #cbd5e1; line-height: 1.5; }
+      .action-tag { font: 700 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; fill: #ffffff; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="540" fill="url(#bgGrad)"/>
+
+  <!-- Top Title -->
+  <g transform="translate(60, 40)">
+    <rect x="0" y="0" width="6" height="42" rx="3" fill="url(#glowGreen)"/>
+    <text x="20" y="24" class="title">🔄 招聘任务状态全生命周期状态机流转</text>
+    <text x="20" y="44" class="subtitle">严格的审核流转机制：从云端新邮件入库，到人工审核准入，再到桌面完成归档</text>
+  </g>
+
+  <!-- Step 0: Inbound Email -->
+  <g transform="translate(60, 180)">
+    <rect width="180" height="200" rx="16" fill="url(#cardGrad)" stroke="#334155" stroke-width="1.5" filter="url(#shadow)"/>
+    <rect x="2" y="2" width="176" height="4" rx="2" fill="url(#glowBlue)"/>
+    <text x="20" y="36" font-size="24">📨</text>
+    <text x="20" y="70" class="state-title">邮件抓取</text>
+    <text x="20" y="100" class="desc">• IMAP 增量读取</text>
+    <text x="20" y="124" class="desc">• DeepSeek AI 提取</text>
+    <text x="20" y="148" class="desc">• 生成唯一 Task ID</text>
+  </g>
+
+  <path d="M 245 280 L 290 280" fill="none" stroke="#38bdf8" stroke-width="3" marker-end="url(#arrowBlue)"/>
+
+  <!-- State 1: PENDING -->
+  <g transform="translate(300, 150)">
+    <rect width="250" height="260" rx="18" fill="url(#cardGrad)" stroke="#38bdf8" stroke-width="2" filter="url(#shadow)"/>
+    <rect x="2" y="2" width="246" height="5" rx="2.5" fill="url(#glowBlue)"/>
+    
+    <rect x="20" y="20" width="130" height="26" rx="6" fill="#0369a1" fill-opacity="0.4"/>
+    <text x="28" y="38" class="state-tag">status: 'pending'</text>
+    
+    <text x="20" y="78" class="state-title">🖥️ 待审核状态</text>
+    <text x="20" y="110" class="desc">• 仅停留在【网页审核大厅】</text>
+    <text x="20" y="134" class="desc">• 桌面端挂件暂不上屏</text>
+    <text x="20" y="158" class="desc">• 杜绝未经审核的广告打扰</text>
+    <text x="20" y="182" class="desc">• 等待人工快速确认</text>
+  </g>
+
+  <!-- Split Branch Up (REJECTED) -->
+  <path d="M 555 240 C 600 240, 610 160, 660 160" fill="none" stroke="#f87171" stroke-width="2.5" stroke-dasharray="4,4" marker-end="url(#arrowRed)"/>
+  
+  <rect x="580" y="170" width="80" height="22" rx="4" fill="#ef4444"/>
+  <text x="590" y="186" class="action-tag">点击忽略</text>
+
+  <!-- State: REJECTED -->
+  <g transform="translate(670, 110)">
+    <rect width="210" height="120" rx="14" fill="url(#cardGrad)" stroke="#ef4444" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="16" y="32" class="state-tag" fill="#f87171">status: 'rejected'</text>
+    <text x="16" y="60" class="state-title" font-size="16px">🗑️ 标记误报 / 忽略</text>
+    <text x="16" y="86" class="desc">• is_deleted 标为 true</text>
+    <text x="16" y="106" class="desc">• 全端彻底隐藏过滤</text>
+  </g>
+
+  <!-- Split Branch Down (APPROVED) -->
+  <path d="M 555 310 C 600 310, 610 370, 660 370" fill="none" stroke="#34d399" stroke-width="3" marker-end="url(#arrowGreen)"/>
+
+  <rect x="575" y="320" width="90" height="22" rx="4" fill="#10b981"/>
+  <text x="583" y="336" class="action-tag">点击通过展示</text>
+
+  <!-- State 2: APPROVED -->
+  <g transform="translate(670, 270)">
+    <rect width="270" height="210" rx="18" fill="url(#cardGrad)" stroke="#10b981" stroke-width="2" filter="url(#shadow)"/>
+    <rect x="2" y="2" width="266" height="5" rx="2.5" fill="url(#glowGreen)"/>
+
+    <rect x="20" y="20" width="140" height="26" rx="6" fill="#065f46" fill-opacity="0.4"/>
+    <text x="28" y="38" class="state-tag" fill="#34d399">status: 'approved'</text>
+
+    <text x="20" y="76" class="state-title">💻 桌面待处理展示</text>
+    <text x="20" y="106" class="desc">• ⚡️ WebSocket 毫秒广播推流</text>
+    <text x="20" y="130" class="desc">• 桌面透明挂件自动淡入上屏</text>
+    <text x="20" y="154" class="desc">• 48h 任务开启红色呼吸灯</text>
+    <text x="20" y="178" class="desc">• 实时提醒重要笔试与面试</text>
+  </g>
+
+  <!-- Transition: APPROVED -> COMPLETED -->
+  <path d="M 945 375 L 1025 375" fill="none" stroke="#34d399" stroke-width="3" marker-end="url(#arrowGreen)"/>
+
+  <rect x="948" y="348" width="75" height="20" rx="4" fill="#3b82f6"/>
+  <text x="954" y="362" class="action-tag">点击打勾 ✓</text>
+
+  <!-- State 3: COMPLETED -->
+  <g transform="translate(1035, 270)">
+    <rect width="345" height="210" rx="18" fill="url(#cardGrad)" stroke="#3b82f6" stroke-width="1.5" filter="url(#shadow)"/>
+    <rect x="2" y="2" width="341" height="5" rx="2.5" fill="url(#glowBlue)"/>
+
+    <rect x="20" y="20" width="150" height="26" rx="6" fill="#1e3a8a" fill-opacity="0.4"/>
+    <text x="28" y="38" class="state-tag" fill="#60a5fa">status: 'completed'</text>
+
+    <text x="20" y="76" class="state-title">📜 历史归档与进度看板</text>
+    <text x="20" y="106" class="desc">• 挂件卡片自动淡出，折叠进【历史记录】</text>
+    <text x="20" y="130" class="desc">• 网页【招聘看板】自动更新该公司状态为完成</text>
+    <text x="20" y="154" class="desc">• 记录完成时间戳 updated_at</text>
+    <text x="20" y="178" class="desc">• 便于全盘复盘与求职轨迹追踪</text>
+  </g>
+</svg>
