@@ -1,11 +1,27 @@
-.venv/
-venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Local Configurations & Credentials
+config.json
+
+# Local Runtime & Locks
 *.log
 *.lock
 app.lock
 client/app.lock
-.DS_Store
-config.json
+
+# Build & Dist Artifacts
 dist/
+build/
+*.dmg
+
+# System
+.DS_Store
