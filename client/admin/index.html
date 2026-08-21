@@ -139,10 +139,10 @@
             <section id="review-view" class="view-panel">
                 <div class="panel-header">
                     <div>
-                        <h2 class="panel-title">📬 新邮件待审大厅</h2>
-                        <p class="panel-subtitle">由云端 DeepSeek AI 抓取解析的新通知，确认后将同步推送至桌面透明挂件</p>
+                        <h2 class="panel-title">📬 邮件待审与准入门禁</h2>
+                        <p class="panel-subtitle">由云端 DeepSeek AI 实时抓取解析 · 请确认是否为本人真实求职通知</p>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                         <div class="filter-chips">
                             <button class="filter-chip active" id="btn-subtab-pending" onclick="switchReviewSubtab('pending')">
                                 📬 待审核 (<span id="review-badge-sub">0</span>)
@@ -151,8 +151,8 @@
                                 📦 已忽略归档 (<span id="ignored-badge">0</span>)
                             </button>
                         </div>
-                        <button class="btn btn-secondary btn-sm" onclick="loadReviews()">
-                            <span>🔄</span> 刷新
+                        <button class="btn btn-secondary btn-sm" id="btn-batch-approve" style="display:none;" onclick="batchApproveAllStages()" title="批量将当前全部待审邮件放行建档">
+                            <span>⚡️</span> 一键全选准入
                         </button>
                     </div>
                 </div>
@@ -162,13 +162,13 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th style="width: 120px;">抓取时间</th>
-                                <th style="width: 200px;">目标企业</th>
+                                <th style="width: 90px;">抓取时间</th>
+                                <th style="width: 220px;">目标企业 / 岗位</th>
                                 <th style="width: 140px;">提炼环节</th>
-                                <th style="width: 180px;">本轮等待预期</th>
-                                <th style="width: 150px;">约定时间</th>
-                                <th>备注 / 会议号</th>
-                                <th style="width: 160px; text-align: right;">审核决策</th>
+                                <th style="width: 160px;">本轮等待预期</th>
+                                <th style="width: 130px;">约定时间</th>
+                                <th>凭据 / 官网 / 备注</th>
+                                <th style="width: 170px; text-align: right;">审核决策</th>
                             </tr>
                         </thead>
                         <tbody id="review-tbody">

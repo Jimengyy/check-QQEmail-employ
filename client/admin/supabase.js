@@ -29,6 +29,31 @@
             return this;
         }
 
+        neq(column, value) {
+            this.params.push(column + '=neq.' + encodeURIComponent(value));
+            return this;
+        }
+
+        lt(column, value) {
+            this.params.push(column + '=lt.' + encodeURIComponent(value));
+            return this;
+        }
+
+        lte(column, value) {
+            this.params.push(column + '=lte.' + encodeURIComponent(value));
+            return this;
+        }
+
+        gt(column, value) {
+            this.params.push(column + '=gt.' + encodeURIComponent(value));
+            return this;
+        }
+
+        gte(column, value) {
+            this.params.push(column + '=gte.' + encodeURIComponent(value));
+            return this;
+        }
+
         order(column, { ascending = true } = {}) {
             this.params.push('order=' + encodeURIComponent(column) + '.' + (ascending ? 'asc' : 'desc'));
             return this;

@@ -721,16 +721,20 @@ function updateKPICards() {
     const waitingResultsEl = document.getElementById('metric-waiting-results');
     const offerCountEl = document.getElementById('metric-offer-count');
 
-    // 统计已建档且非归档的投递单
-    const validApps = allApplications.filter(a => a.overall_status !== 'archived');
-    const totalAppsCount = validApps.length;
+    // 统计已审核放行（拥有非 pending/ignored 环节）且非归档的投递单
+    const validApps = allApplications.filter(app => {
+        if (app.overall_status === 'archived') return false;
+        const stages = (app.stages || []).filter(s => s.stage_status !== 'ignored' && s.stage_status !== 'pending');
+        return stages.length > 0;
+    });
 
+    const totalAppsCount = validApps.length;
     let activeStagesCount = 0;
     let waitingResultsCount = 0;
     let offerCount = 0;
 
     validApps.forEach(app => {
-        const stages = app.stages.filter(s => s.stage_status !== 'ignored' && s.stage_status !== 'pending');
+        const stages = (app.stages || []).filter(s => s.stage_status !== 'ignored' && s.stage_status !== 'pending');
         if (stages.length === 0) return;
 
         const latestStage = stages[stages.length - 1];
@@ -758,18 +762,26 @@ function renderDashboard() {
     const tbody = document.getElementById('dashboard-tbody');
     if (!tbody) return;
 
-    if (allApplications.length === 0) {
+    // 仅筛选出已审核放行（拥有非 pending/ignored 环节）或主动归档的投递单
+    const approvedApplications = allApplications.filter(app => {
+        const stages = (app.stages || []).filter(s => s.stage_status !== 'ignored' && s.stage_status !== 'pending');
+        return stages.length > 0 || app.overall_status === 'archived';
+    });
+
+    if (approvedApplications.length === 0) {
+        const pendingCount = allStages.filter(s => s.stage_status === 'pending').length;
         tbody.innerHTML = `
             <tr>
                 <td colspan="5" class="empty-state">
                     <div style="padding: 36px 16px;">
                         <div style="font-size: 2.2rem; margin-bottom: 8px;">📬</div>
                         <div style="font-size: 1.05rem; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
-                            暂无求职建档记录
+                            ${pendingCount > 0 ? `有 ${pendingCount} 封新邮件待审核准入` : '暂无求职建档记录'}
                         </div>
                         <div style="font-size: 0.86rem; color: var(--text-muted); max-width: 520px; margin: 0 auto; line-height: 1.6;">
-                            云端 AI 抓取到的新邮件通知存放在顶栏 <strong>「新邮件待审」</strong> 中。<br>
-                            请前往待审大厅点击 <strong>“通过展示”</strong>，确认后将自动在此全景建档并同步至桌面挂件！
+                            ${pendingCount > 0 
+                                ? `云端 AI 已为您提取 <strong>${pendingCount}</strong> 封求职通知存放在顶栏 <strong>「新邮件待审」</strong> 中。<br>请前往待审大厅点击 <strong>“✓ 通过”</strong>，确认后将自动在此全景建档并同步至桌面挂件！`
+                                : '云端抓取或手动建档后，在此展示公司全景求职链路。'}
                         </div>
                     </div>
                 </td>
@@ -779,7 +791,7 @@ function renderDashboard() {
     }
 
     // 过滤逻辑 (搜索 & Filter Chips)
-    const filteredApps = allApplications.filter(app => {
+    const filteredApps = approvedApplications.filter(app => {
         const stages = (app.stages || []).filter(s => s.stage_status !== 'ignored' && s.stage_status !== 'pending');
         const latestStage = stages.length > 0 ? stages[stages.length - 1] : null;
         const meta = getStageStatusMeta(latestStage, app);
@@ -1141,16 +1153,21 @@ async function loadReviews() {
 
 function renderReviews(stages) {
     const tbody = document.getElementById('review-tbody');
+    const batchBtn = document.getElementById('btn-batch-approve');
+    if (batchBtn) {
+        batchBtn.style.display = stages.length > 1 ? 'inline-flex' : 'none';
+        batchBtn.innerHTML = `<span>⚡️</span> 一键全选准入 (${stages.length})`;
+    }
     if (!tbody) return;
 
     if (stages.length === 0) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="7" class="empty-state">
-                    <div style="padding: 30px 0;">
-                        <div style="font-size: 2rem; margin-bottom: 6px;">🎉</div>
-                        <div style="font-weight: 700; color: var(--text-main);">太棒了！所有新邮件均已审核完毕</div>
-                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">
+                    <div style="padding: 36px 0;">
+                        <div style="font-size: 2.2rem; margin-bottom: 8px;">🎉</div>
+                        <div style="font-weight: 800; font-size: 1.1rem; color: var(--text-main);">太棒了！所有新邮件均已审核完毕</div>
+                        <div style="font-size: 0.86rem; color: var(--text-muted); margin-top: 4px;">
                             云端 7x24h 自动化扫描中，一旦有新的笔试/面试通知将第一时间在此浮现。
                         </div>
                     </div>
@@ -1167,9 +1184,12 @@ function renderReviews(stages) {
         const safeDept = app.department ? escapeHTML(app.department) : '';
         const safePosition = escapeHTML(app.position || stage.raw_subject || '求职岗位');
         const safeType = escapeHTML(stage.stage_name || '环节');
-        const safeTime = escapeHTML(stage.schedule_time || '时间待定');
+        const safeTime = escapeHTML(stage.schedule_time || '待定');
         const safeNextExp = escapeHTML(stage.next_expectation || '等待下一步通知');
-        const safeMeeting = escapeHTML(stage.meeting_info || '');
+        const safeMeeting = (stage.meeting_info || '').trim();
+        const safeNotes = (stage.notes || '').trim();
+        const avatarBg = getCompanyColor(app.company);
+        const avatarInitial = getCompanyInitial(app.company);
 
         let timeStr = '刚刚';
         if (stage.created_at) {
@@ -1179,26 +1199,51 @@ function renderReviews(stages) {
             } catch(e) {}
         }
 
+        // 凭据与链接智能化渲染
+        let credHTML = '<span style="color:#CBD5E1;">—</span>';
+        if (safeMeeting.startsWith('http://') || safeMeeting.startsWith('https://')) {
+            credHTML = `<a href="${escapeHTML(safeMeeting)}" target="_blank" class="review-link-pill" title="${escapeHTML(safeMeeting)}">🔗 官网链接 ↗</a>`;
+        } else if (safeMeeting) {
+            credHTML = `
+                <div class="review-cred-box">
+                    <span>🔑 ${escapeHTML(safeMeeting)}</span>
+                    <button class="review-copy-btn" onclick="navigator.clipboard.writeText('${escapeHTML(safeMeeting)}');alert('已复制会议凭据！');">复制</button>
+                </div>
+            `;
+        } else if (safeNotes) {
+            credHTML = `<span style="font-size:0.78rem;color:var(--text-sub);max-width:180px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHTML(safeNotes)}">📌 ${escapeHTML(safeNotes)}</span>`;
+        }
+
+        const isTimeScheduled = safeTime !== '待定' && safeTime !== '';
+        const timeHTML = isTimeScheduled 
+            ? `<div class="review-time-tag"><span style="color:var(--primary);">📅</span> <strong>${safeTime}</strong></div>`
+            : `<span style="color:var(--text-sub);font-size:0.82rem;">待推进通知</span>`;
+
         return `
             <tr id="review-row-${stage.id}">
-                <td><span style="font-size:0.85rem;color:var(--text-muted);">${timeStr}</span></td>
+                <td><span style="font-size:0.84rem;color:var(--text-muted);font-weight:500;">${timeStr}</span></td>
                 <td>
-                    <div style="display:flex;align-items:center;gap:4px;">
-                        <strong style="font-size:0.98rem;color:var(--text-main);">${safeCompany}</strong>
-                        ${safeDept ? `<span class="badge-tag badge-indigo" style="font-size:0.72rem;padding:1px 6px;">${safeDept}</span>` : ''}
+                    <div class="company-cell">
+                        <div class="company-avatar" style="background:${avatarBg}; width:32px; height:32px; font-size:0.88rem; border-radius:8px;">
+                            ${avatarInitial}
+                        </div>
+                        <div class="company-info">
+                            <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+                                <span class="company-name" style="font-size:0.92rem;">${safeCompany}</span>
+                                ${safeDept ? `<span class="badge-tag badge-indigo" style="font-size:0.68rem;padding:1px 5px;">${safeDept}</span>` : ''}
+                            </div>
+                            <span class="company-subject" style="max-width:190px;" title="${safePosition}">${safePosition}</span>
+                        </div>
                     </div>
-                    <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">${safePosition}</div>
                 </td>
                 <td><span class="badge-tag ${meta.badgeClass}">${meta.icon} ${safeType}</span></td>
-                <td><span style="font-size:0.85rem;color:#475569;">${safeNextExp}</span></td>
-                <td><span style="font-weight:600;">${safeTime}</span></td>
-                <td>
-                    <span style="font-size:0.8rem;color:#B45309;">${safeMeeting ? `🔑 ${safeMeeting}` : '<span style="color:#94A3B8;">无凭据</span>'}</span>
-                </td>
+                <td><div class="review-exp-text" title="${safeNextExp}">${safeNextExp}</div></td>
+                <td>${timeHTML}</td>
+                <td>${credHTML}</td>
                 <td style="text-align: right;">
                     <div style="display:inline-flex;gap:6px;">
-                        <button class="btn btn-success btn-sm" onclick="approveStage('${stage.id}')" title="确认是我的求职邮件，通过并加入看板与桌面挂件">✓ 通过</button>
-                        <button class="btn btn-danger btn-sm" onclick="ignoreStage('${stage.id}')" title="广告/误报/非本人应聘信息，直接忽略">✕ 忽略</button>
+                        <button class="btn-review-approve" onclick="approveStage('${stage.id}')" title="确认是我的求职邮件，通过并加入看板与桌面挂件">✓ 准入</button>
+                        <button class="btn-review-ignore" onclick="ignoreStage('${stage.id}')" title="广告/非本人应聘，移至已忽略">✕ 忽略</button>
                     </div>
                 </td>
             </tr>
@@ -1214,10 +1259,10 @@ function renderIgnoredReviews(stages) {
         tbody.innerHTML = `
             <tr>
                 <td colspan="6" class="empty-state">
-                    <div style="padding: 30px 0;">
-                        <div style="font-size: 2rem; margin-bottom: 6px;">📦</div>
-                        <div style="font-weight: 700; color: var(--text-main);">暂无已忽略邮件</div>
-                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">
+                    <div style="padding: 36px 0;">
+                        <div style="font-size: 2.2rem; margin-bottom: 8px;">📦</div>
+                        <div style="font-weight: 800; font-size: 1.1rem; color: var(--text-main);">暂无已忽略邮件</div>
+                        <div style="font-size: 0.86rem; color: var(--text-muted); margin-top: 4px;">
                             被忽略的邮件会保存在此，随时可一键恢复。
                         </div>
                     </div>
@@ -1234,6 +1279,8 @@ function renderIgnoredReviews(stages) {
         const safeType = escapeHTML(stage.stage_name || '环节');
         const safePosition = escapeHTML(app.position || stage.raw_subject || '无主题');
         const safeMeeting = escapeHTML(stage.meeting_info || '');
+        const avatarBg = getCompanyColor(app.company);
+        const avatarInitial = getCompanyInitial(app.company);
 
         let timeStr = '未知';
         if (stage.created_at) {
@@ -1245,23 +1292,74 @@ function renderIgnoredReviews(stages) {
 
         return `
             <tr id="ignored-row-${stage.id}">
-                <td><span style="font-size:0.85rem;color:var(--text-muted);">${timeStr}</span></td>
-                <td><strong style="font-size:0.98rem;color:var(--text-main);">${safeCompany}</strong></td>
+                <td><span style="font-size:0.84rem;color:var(--text-muted);">${timeStr}</span></td>
+                <td>
+                    <div class="company-cell">
+                        <div class="company-avatar" style="background:${avatarBg}; width:30px; height:30px; font-size:0.84rem; border-radius:6px;">
+                            ${avatarInitial}
+                        </div>
+                        <span class="company-name" style="font-size:0.92rem;">${safeCompany}</span>
+                    </div>
+                </td>
                 <td><span class="badge-tag ${meta.badgeClass}">${meta.icon} ${safeType}</span></td>
                 <td>
-                    <div style="font-size:0.85rem;color:#334155;">${safePosition}</div>
+                    <div style="font-size:0.84rem;color:#334155;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${safePosition}</div>
                     ${safeMeeting ? `<div style="font-size:0.75rem;color:#B45309;margin-top:2px;">🔑 ${safeMeeting}</div>` : ''}
                 </td>
                 <td><span style="font-size:0.82rem;color:var(--text-muted);">${stage.schedule_time || '待定'}</span></td>
                 <td style="text-align: right;">
                     <div style="display:inline-flex;gap:6px;">
-                        <button class="btn btn-success btn-sm" onclick="restoreIgnoredStage('${stage.id}', 'scheduled')" title="恢复这个环节并通过展示">✓ 恢复并通过</button>
-                        <button class="btn btn-secondary btn-sm" onclick="restoreIgnoredStage('${stage.id}', 'pending')" title="恢复并重新放回待审核大厅">↩ 恢复至待审</button>
+                        <button class="btn-review-approve" style="padding:4px 10px;font-size:0.78rem;" onclick="restoreIgnoredStage('${stage.id}', 'scheduled')" title="恢复这个环节并通过展示">✓ 恢复并准入</button>
+                        <button class="btn-review-ignore" style="padding:4px 8px;font-size:0.78rem;" onclick="restoreIgnoredStage('${stage.id}', 'pending')" title="恢复并重新放回待审核大厅">↩ 恢复至待审</button>
                     </div>
                 </td>
             </tr>
         `;
     }).join('');
+}
+
+// ⚡️ 批量一键放行准入全部待审邮件
+async function batchApproveAllStages() {
+    const pendingStages = allStages.filter(s => s.stage_status === 'pending');
+    if (pendingStages.length === 0) return;
+    if (!confirm(`确定要一键将当前 ${pendingStages.length} 封待审邮件全部放行准入并建档吗？`)) return;
+    if (!supabase) return;
+
+    try {
+        const stageIds = pendingStages.map(s => s.id);
+        const { error } = await supabase
+            .from('application_stages')
+            .update({
+                stage_status: 'awaiting_result',
+                updated_at: new Date().toISOString()
+            })
+            .in('id', stageIds);
+
+        if (error) throw error;
+
+        // 同步将涉及的主表激活
+        const appIds = [...new Set(pendingStages.map(s => s.application_id).filter(Boolean))];
+        for (const appId of appIds) {
+            const appStages = pendingStages.filter(s => s.application_id === appId);
+            const latest = appStages[appStages.length - 1];
+            if (latest) {
+                await supabase
+                    .from('applications')
+                    .update({
+                        current_stage_name: latest.stage_name,
+                        overall_status: 'active',
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', appId);
+            }
+        }
+
+        console.log(`✅ 批量准入 ${stageIds.length} 个环节成功`);
+        await loadAllData();
+    } catch (err) {
+        console.error('批量准入失败:', err);
+        alert(`批量操作失败: ${err.message}`);
+    }
 }
 
 // 审核通过
@@ -1284,14 +1382,16 @@ async function approveStage(stageId) {
 
         // 2. 将该投递单下的前序环节全部自动标记为 passed (已通过)
         if (stage.application_id) {
-            await supabase
-                .from('application_stages')
-                .update({
-                    stage_status: 'passed',
-                    updated_at: new Date().toISOString()
-                })
-                .eq('application_id', stage.application_id)
-                .lt('seq', stage.seq || 1);
+            if ((stage.seq || 1) > 1) {
+                await supabase
+                    .from('application_stages')
+                    .update({
+                        stage_status: 'passed',
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('application_id', stage.application_id)
+                    .lt('seq', stage.seq || 1);
+            }
 
             // 更新主表最新环节快照
             await supabase
