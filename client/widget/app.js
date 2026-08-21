@@ -143,53 +143,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 2. 从 Supabase 拉取任务数据 (桌面端展示待办状态 stage_status = 'scheduled')
+    // 2. 从 Supabase 拉取任务数据 (桌面端仅展示已审核通过的任务 status = 'approved')
     async function fetchData() {
         if (!supabase) return;
         try {
-            // 拉取所有 applications 用于获取公司名称和部门
-            const { data: appsData, error: appsErr } = await supabase
-                .from('applications')
-                .select('id, company, department, position, overall_status');
-
-            if (appsErr) throw appsErr;
-
-            const appsMap = {};
-            (appsData || []).forEach(a => {
-                appsMap[a.id] = a;
-            });
-
-            // 待办待参加/待作答任务
-            const { data: pendingStages, error: pendingErr } = await supabase
-                .from('application_stages')
+            const { data: pendingData, error: pendingErr } = await supabase
+                .from('tasks')
                 .select('*')
-                .eq('stage_status', 'scheduled')
+                .eq('status', 'approved')
+                .eq('is_deleted', false)
+                .order('urgent', { ascending: false })
                 .order('created_at', { ascending: false });
 
             if (pendingErr) throw pendingErr;
 
-            // 完结等待结果或历史通过任务
-            const { data: completedStages, error: completedErr } = await supabase
-                .from('application_stages')
+            const { data: completedData, error: completedErr } = await supabase
+                .from('tasks')
                 .select('*')
-                .in('stage_status', ['awaiting_result', 'passed'])
+                .eq('status', 'completed')
+                .eq('is_deleted', false)
                 .order('updated_at', { ascending: false })
                 .limit(20);
 
             if (completedErr) throw completedErr;
 
-            // 绑定 application 信息
-            const enrichedPending = (pendingStages || []).map(s => ({
-                ...s,
-                app: appsMap[s.application_id] || { company: '未知企业', position: '' }
-            })).filter(s => s.app.overall_status !== 'archived');
-
-            const enrichedCompleted = (completedStages || []).map(s => ({
-                ...s,
-                app: appsMap[s.application_id] || { company: '未知企业', position: '' }
-            }));
-
-            renderTasks(enrichedPending, enrichedCompleted);
+            renderTasks(pendingData || [], completedData || []);
             updateStatusDot(true);
 
             const now = new Date();
@@ -226,43 +204,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function createTaskHTML(task, isHistory = false) {
         let typeClass = '';
-        const taskType = (task.stage_name || '求职通知').trim();
-        let typeIcon = '⏳';
+        const taskType = task.type || '招聘';
+        if (taskType.includes('AI')) typeClass = 'type-ai';
+        else if (taskType.includes('线上')) typeClass = 'type-online';
+        else if (taskType.includes('线下')) typeClass = 'type-offline';
+        else if (taskType.includes('笔试')) typeClass = 'type-test';
+        else if (taskType.includes('测评')) typeClass = 'type-assessment';
+        else if (taskType.includes('Offer') || taskType.includes('录取')) typeClass = 'type-success';
+        else if (taskType.includes('投递') || taskType.includes('网申') || taskType.includes('资料') || taskType.includes('入职')) typeClass = 'type-info';
 
-        if (taskType.includes('AI')) {
-            typeClass = 'type-ai';
-            typeIcon = '🤖';
-        } else if (taskType.includes('笔试')) {
-            typeClass = 'type-test';
-            typeIcon = '📝';
-        } else if (taskType.includes('测评') || taskType.includes('认知')) {
-            typeClass = 'type-assessment';
-            typeIcon = '📝';
-        } else if (taskType.includes('Offer') || taskType.includes('录取') || taskType.includes('意向') || taskType.includes('沟通')) {
-            typeClass = 'type-success';
-            typeIcon = '🎁';
-        } else if (taskType.includes('投递') || taskType.includes('网申') || taskType.includes('资料') || taskType.includes('入职')) {
-            typeClass = 'type-info';
-            typeIcon = '📬';
-        } else if (taskType.includes('终面') || taskType.includes('总监')) {
-            typeClass = 'type-success';
-            typeIcon = '🏆';
-        } else if (taskType.includes('二面') || taskType.includes('复试')) {
-            typeClass = 'type-online';
-            typeIcon = '🎯';
-        } else if (taskType.includes('一面') || taskType.includes('初试') || taskType.includes('面试')) {
-            typeClass = 'type-online';
-            typeIcon = '⏳';
-        } else if (taskType.includes('感谢信') || taskType.includes('结束') || taskType.includes('终止')) {
-            typeClass = 'type-offline';
-            typeIcon = '📦';
-        }
-
-        const app = task.app || {};
-        const compDisplay = app.department ? `${app.company} · ${app.department}` : (app.company || '未知企业');
-        const safeCompany = escapeHTML(compDisplay);
+        const safeCompany = escapeHTML(task.company || '未知公司');
         const safeType = escapeHTML(taskType);
-        const safeTime = escapeHTML(task.schedule_time || '待定');
+        const safeTime = escapeHTML(task.time || '待定');
         
         let completedTimeText = '';
         if (isHistory && (task.updated_at || task.created_at)) {
@@ -274,29 +227,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        let historyActionLabel = `✓ 【${safeType}】已完成 @ ${completedTimeText}`;
-        if (taskType.includes('笔试') || taskType.includes('测评')) {
-            historyActionLabel = `✓ 【${safeType}】已作答 @ ${completedTimeText}`;
-        } else if (taskType.includes('面试') || taskType.includes('初试') || taskType.includes('复试') || taskType.includes('终面')) {
-            historyActionLabel = `✓ 【${safeType}】已参加 @ ${completedTimeText}`;
-        } else if (taskType.includes('网申') || taskType.includes('投递')) {
-            historyActionLabel = `✓ 【${safeType}】已送达 @ ${completedTimeText}`;
-        } else if (taskType.includes('Offer') || taskType.includes('录用') || taskType.includes('意向')) {
-            historyActionLabel = `🎉 【${safeType}】已完成 @ ${completedTimeText}`;
-        } else if (taskType.includes('感谢信') || taskType.includes('结束') || taskType.includes('终止')) {
-            historyActionLabel = `📦 【${safeType}】已归档 @ ${completedTimeText}`;
-        }
-
         return `
             <div class="task-item ${isHistory ? 'is-completed' : ''}" id="task-${task.id}" data-id="${task.id}">
+                ${task.urgent && !isHistory ? '<div class="urgent-indicator" title="紧急任务"></div>' : ''}
                 <div class="task-header">
                     <span class="company-name" title="${safeCompany}">${safeCompany}</span>
-                    <span class="task-type ${typeClass}">${typeIcon} ${safeType}</span>
+                    <span class="task-type ${typeClass}">${safeType}</span>
                 </div>
                 <div class="task-time">${safeTime}</div>
                 ${isHistory ? 
-                    `<div class="completed-tag">${historyActionLabel}</div>` : 
-                    `<button class="complete-btn" data-id="${task.id}" title="标记为参加/作答完成">✓</button>`
+                    `<div class="completed-tag">✓ 完成 @ ${completedTimeText}</div>` : 
+                    `<button class="complete-btn" data-id="${task.id}" title="标记为已完成">✓</button>`
                 }
             </div>
         `;
@@ -306,8 +247,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.complete-btn').forEach(btn => {
             btn.onclick = async (e) => {
                 e.stopPropagation();
-                const stageId = btn.getAttribute('data-id');
-                const taskElement = document.getElementById(`task-${stageId}`);
+                const taskId = btn.getAttribute('data-id');
+                const taskElement = document.getElementById(`task-${taskId}`);
 
                 if (taskElement) {
                     taskElement.style.opacity = '0.3';
@@ -317,21 +258,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const nowIso = new Date().toISOString();
                     const { error } = await supabase
-                        .from('application_stages')
+                        .from('tasks')
                         .update({ 
-                            stage_status: 'awaiting_result', 
+                            status: 'completed', 
                             updated_at: nowIso
                         })
-                        .eq('id', stageId);
+                        .eq('id', taskId);
 
                     if (error) throw error;
                     fetchData();
                 } catch (err) {
-                    console.error('完成操作失败:', err);
+                    console.error('更新任务状态失败:', err);
                     if (taskElement) {
                         taskElement.style.opacity = '1';
                         taskElement.style.transform = 'none';
                     }
+                    alert('网络异常，状态更新失败');
                 }
             };
         });
@@ -343,24 +285,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 4. 初始化 Realtime 监听
+    // 4. Supabase Realtime 实时订阅频道
     function setupRealtime() {
         if (!supabase) return;
         if (realtimeChannel) {
-            try { realtimeChannel.unsubscribe(); } catch(e) {}
+            try { realtimeChannel.unsubscribe(); } catch (e) {}
         }
 
         realtimeChannel = supabase
-            .channel('widget_stages_realtime')
+            .channel('public:tasks')
             .on(
                 'postgres_changes',
-                { event: '*', schema: 'public', table: 'application_stages' },
-                () => fetchData()
-            )
-            .on(
-                'postgres_changes',
-                { event: '*', schema: 'public', table: 'applications' },
-                () => fetchData()
+                { event: '*', schema: 'public', table: 'tasks' },
+                (payload) => {
+                    console.log('⚡️ 收到 Supabase Realtime 广播:', payload);
+                    fetchData();
+                }
             )
             .subscribe((status) => {
                 console.log('⚡️ Supabase Realtime 订阅状态:', status);
