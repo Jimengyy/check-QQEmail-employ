@@ -1,0 +1,217 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" width="1440" height="900">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap');
+      * { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+      .text-title { font-size: 20px; font-weight: 800; fill: #1E293B; }
+      .text-subtitle { font-size: 13px; font-weight: 500; fill: #64748B; }
+      .text-nav { font-size: 14px; font-weight: 600; fill: #475569; }
+      .text-nav-active { font-size: 14px; font-weight: 700; fill: #0F172A; }
+      .text-card-num { font-size: 24px; font-weight: 800; fill: #0F172A; }
+      .text-card-label { font-size: 12px; font-weight: 600; fill: #64748B; }
+    </style>
+    
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#000000" flood-opacity="0.04"/>
+    </filter>
+    <filter id="kpiHoverShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="14" flood-color="#000000" flood-opacity="0.07"/>
+    </filter>
+    <filter id="cardShadow" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#000000" flood-opacity="0.03"/>
+    </filter>
+    <filter id="btnShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#0F172A" flood-opacity="0.15"/>
+    </filter>
+
+    <linearGradient id="primaryBtn" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 1. Background Canvas -->
+  <rect width="1440" height="900" fill="#FDFCF8"/>
+
+  <!-- ==================== LEAN REDESIGNED SIDEBAR (240px) ==================== -->
+  <g id="leanSidebar">
+    <rect x="0" y="0" width="240" height="900" fill="#F6F4ED" stroke="#EBE7DE" stroke-width="1"/>
+
+    <!-- Section 1: Pure Brand Logo (No traffic lights) -->
+    <g transform="translate(24, 32)">
+      <text x="0" y="20" font-size="19" font-weight="900" fill="#0F172A">✦ OfferPilot</text>
+      <rect x="114" y="4" width="42" height="20" rx="10" fill="#E2DDD2"/>
+      <text x="122" y="18" font-size="10.5" font-weight="800" fill="#64748B">ATS</text>
+    </g>
+
+    <!-- Section 2: Global Action Button -->
+    <g transform="translate(20, 78)">
+      <rect x="0" y="0" width="200" height="40" rx="20" fill="url(#primaryBtn)" filter="url(#btnShadow)"/>
+      <text x="44" y="25" font-size="13.5" font-weight="700" fill="#FFFFFF">➕ 手动建档 / 推进</text>
+    </g>
+
+    <!-- Section 3: Core 2 Master Views (De-duplicated) -->
+    <g transform="translate(20, 146)">
+      <!-- Nav 1: Dashboard (Active State) -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="200" height="42" rx="10" fill="#FFFFFF" filter="url(#softShadow)"/>
+        <rect x="0" y="11" width="3.5" height="20" rx="1.75" fill="#10B981"/>
+        <text x="18" y="26" class="text-nav-active">📊 求职全景看板</text>
+      </g>
+
+      <!-- Nav 2: Review Inbox (With Red Counter) -->
+      <g transform="translate(0, 52)">
+        <rect x="0" y="0" width="200" height="42" rx="10" fill="transparent"/>
+        <text x="18" y="26" class="text-nav">📬 邮件待审准入</text>
+        <rect x="156" y="11" width="32" height="20" rx="10" fill="#EF4444"/>
+        <text x="165" y="25" font-size="11" font-weight="800" fill="#FFFFFF">14</text>
+      </g>
+    </g>
+
+    <!-- Section 4: Bottom Tools, Settings & Telemetry -->
+    <g transform="translate(20, 755)">
+      <line x1="0" y1="0" x2="200" y2="0" stroke="#E8E4DB" stroke-width="1"/>
+
+      <!-- Nav: Wake Widget -->
+      <g transform="translate(0, 14)">
+        <rect x="0" y="0" width="200" height="34" rx="8" fill="#ECE8DF" stroke="#DFD9CD" stroke-width="1"/>
+        <text x="42" y="22" font-size="12" font-weight="700" fill="#475569">💻 唤醒桌面透明挂件</text>
+      </g>
+
+      <!-- Realtime Status & Settings -->
+      <g transform="translate(0, 56)">
+        <rect x="0" y="0" width="200" height="36" rx="8" fill="#E8E4DA"/>
+        <circle cx="20" cy="18" r="4" fill="#10B981"/>
+        <text x="32" y="22" font-size="11.5" font-weight="700" fill="#065F46">云端 Realtime 已连接</text>
+        <!-- Settings Gear -->
+        <text x="175" y="22" font-size="13" fill="#64748B">⚙️</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- ==================== MAIN WORKSPACE AREA ==================== -->
+  <g transform="translate(272, 0)">
+    <!-- Top Header -->
+    <g transform="translate(0, 28)">
+      <text x="0" y="24" class="text-title">求职全景看板</text>
+      <text x="0" y="46" class="text-subtitle">多端实时同步 · ATS 主子表架构 · 智能时序状态机</text>
+
+      <!-- Search & Refresh on right -->
+      <g transform="translate(760, 0)">
+        <rect x="0" y="4" width="240" height="36" rx="18" fill="#FFFFFF" stroke="#EBE7DE" filter="url(#cardShadow)"/>
+        <text x="18" y="26" font-size="12.5" fill="#94A3B8">🔍 搜索企业、部门、岗位...</text>
+        <rect x="250" y="4" width="76" height="36" rx="18" fill="#FFFFFF" stroke="#EBE7DE" filter="url(#cardShadow)"/>
+        <text x="264" y="26" font-size="12.5" font-weight="700" fill="#475569">🔄 刷新</text>
+      </g>
+    </g>
+
+    <!-- Top 4 Bento KPI Metric Cards (Now Acting as Interactive Filter Hub) -->
+    <g transform="translate(0, 95)">
+      <!-- KPI 1: All (Active Selected Filter) -->
+      <rect x="0" y="0" width="250" height="88" rx="14" fill="#FFFFFF" stroke="#10B981" stroke-width="1.8" filter="url(#kpiHoverShadow)"/>
+      <text x="20" y="28" class="text-card-label">🏢 全部已建档企业</text>
+      <text x="20" y="66" class="text-card-num">18</text>
+      <rect x="180" y="50" width="54" height="20" rx="10" fill="#DCFCE7"/>
+      <text x="189" y="64" font-size="10.5" font-weight="700" fill="#16A34A">当前查看</text>
+
+      <!-- KPI 2: In Progress -->
+      <rect x="268" y="0" width="250" height="88" rx="14" fill="#FFFFFF" stroke="#EBE7DE" filter="url(#softShadow)"/>
+      <text x="288" y="28" class="text-card-label">⏳ 待办面试 / 笔试</text>
+      <text x="288" y="66" class="text-card-num" fill="#4F46E5">9</text>
+      <text x="430" y="64" font-size="11" font-weight="700" fill="#4F46E5">点击过滤 ➔</text>
+
+      <!-- KPI 3: Waiting for Feedback -->
+      <rect x="536" y="0" width="250" height="88" rx="14" fill="#FFFFFF" stroke="#EBE7DE" filter="url(#softShadow)"/>
+      <text x="556" y="28" class="text-card-label">🎯 完结等待结果</text>
+      <text x="556" y="66" class="text-card-num" fill="#D97706">4</text>
+      <text x="705" y="64" font-size="11" font-weight="700" fill="#D97706">点击过滤 ➔</text>
+
+      <!-- KPI 4: Offer -->
+      <rect x="804" y="0" width="250" height="88" rx="14" fill="#FFFFFF" stroke="#EBE7DE" filter="url(#softShadow)"/>
+      <text x="824" y="28" class="text-card-label">🏆 已获录用 / Offer</text>
+      <text x="824" y="66" class="text-card-num" fill="#059669">2</text>
+      <text x="980" y="64" font-size="11" font-weight="700" fill="#059669">点击过滤 ➔</text>
+    </g>
+
+    <!-- Interactive Table Container -->
+    <g transform="translate(0, 205)">
+      <rect x="0" y="0" width="1054" height="660" rx="16" fill="#FFFFFF" stroke="#EBE7DE" filter="url(#softShadow)"/>
+
+      <!-- Table Header -->
+      <g transform="translate(24, 20)">
+        <rect x="0" y="0" width="1006" height="38" rx="8" fill="#F8FAFC"/>
+        <text x="24" y="24" font-size="12" font-weight="700" fill="#64748B">投递企业 / 岗位</text>
+        <text x="320" y="24" font-size="12" font-weight="700" fill="#64748B">求职推进链路 (PIPELINE STEPPER)</text>
+        <text x="640" y="24" font-size="12" font-weight="700" fill="#64748B">最新客观状态</text>
+        <text x="820" y="24" font-size="12" font-weight="700" fill="#64748B">约定时间</text>
+        <text x="940" y="24" font-size="12" font-weight="700" fill="#64748B">操作</text>
+      </g>
+
+      <!-- Row 1: 小红书 -->
+      <g transform="translate(24, 70)">
+        <rect x="0" y="0" width="1006" height="72" rx="10" fill="#FFFFFF" stroke="#F1F5F9"/>
+        <rect x="18" y="16" width="40" height="40" rx="8" fill="#EF4444"/>
+        <text x="31" y="42" font-size="18" font-weight="800" fill="#FFF">小</text>
+        <text x="68" y="32" font-size="15" font-weight="800" fill="#0F172A">小红书</text>
+        <rect x="124" y="18" width="64" height="18" rx="4" fill="#EEF2FF"/>
+        <text x="130" y="31" font-size="10.5" font-weight="700" fill="#4F46E5">多媒体技术</text>
+        <text x="68" y="50" font-size="12" fill="#64748B">Product Engineer-产品工程师</text>
+
+        <!-- Stepper -->
+        <g transform="translate(320, 24)">
+          <line x1="10" y1="12" x2="260" y2="12" stroke="#E2E8F0" stroke-width="2"/>
+          <line x1="10" y1="12" x2="160" y2="12" stroke="#10B981" stroke-width="2.5"/>
+          <circle cx="10" cy="12" r="6" fill="#10B981"/>
+          <text x="10" y="30" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">网申✓</text>
+          <circle cx="85" cy="12" r="6" fill="#10B981"/>
+          <text x="85" y="30" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">初面✓</text>
+          <circle cx="160" cy="12" r="8" fill="#10B981"/>
+          <circle cx="160" cy="12" r="4" fill="#FFF"/>
+          <text x="160" y="30" font-size="10" font-weight="800" fill="#0F172A" text-anchor="middle">二面(🟢)</text>
+          <circle cx="235" cy="12" r="5" fill="#E2E8F0"/>
+          <text x="235" y="30" font-size="10" font-weight="500" fill="#94A3B8" text-anchor="middle">终面</text>
+        </g>
+
+        <rect x="640" y="24" width="135" height="26" rx="13" fill="#ECFDF5" stroke="#A7F3D0"/>
+        <text x="652" y="41" font-size="12" font-weight="700" fill="#065F46">⏳【二面】待参加</text>
+
+        <text x="820" y="42" font-size="13" font-weight="700" fill="#0F172A">📅 8/25 14:00</text>
+
+        <rect x="920" y="20" width="74" height="32" rx="16" fill="#F1F5F9" stroke="#E2E8F0"/>
+        <text x="930" y="40" font-size="11.5" font-weight="700" fill="#334155">时间线 ➔</text>
+      </g>
+
+      <!-- Row 2: 网易游戏互娱 -->
+      <g transform="translate(24, 150)">
+        <rect x="0" y="0" width="1006" height="72" rx="10" fill="#FFFFFF" stroke="#F1F5F9"/>
+        <rect x="18" y="16" width="40" height="40" rx="8" fill="#0284C7"/>
+        <text x="31" y="42" font-size="18" font-weight="800" fill="#FFF">网</text>
+        <text x="68" y="32" font-size="15" font-weight="800" fill="#0F172A">网易游戏 互娱</text>
+        <rect x="168" y="18" width="48" height="18" rx="4" fill="#EEF2FF"/>
+        <text x="174" y="31" font-size="10.5" font-weight="700" fill="#4F46E5">研发</text>
+        <text x="68" y="50" font-size="12" fill="#64748B">2027届校招岗位 · 游戏开发</text>
+
+        <g transform="translate(320, 24)">
+          <line x1="10" y1="12" x2="260" y2="12" stroke="#E2E8F0" stroke-width="2"/>
+          <line x1="10" y1="12" x2="85" y2="12" stroke="#10B981" stroke-width="2.5"/>
+          <circle cx="10" cy="12" r="6" fill="#10B981"/>
+          <text x="10" y="30" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">网申✓</text>
+          <circle cx="85" cy="12" r="8" fill="#10B981"/>
+          <circle cx="85" cy="12" r="4" fill="#FFF"/>
+          <text x="85" y="30" font-size="10" font-weight="800" fill="#0F172A" text-anchor="middle">测评(🟢)</text>
+          <circle cx="160" cy="12" r="5" fill="#E2E8F0"/>
+          <text x="160" y="30" font-size="10" font-weight="500" fill="#94A3B8" text-anchor="middle">一面</text>
+          <circle cx="235" cy="12" r="5" fill="#E2E8F0"/>
+          <text x="235" y="30" font-size="10" font-weight="500" fill="#94A3B8" text-anchor="middle">Offer</text>
+        </g>
+
+        <rect x="640" y="24" width="135" height="26" rx="13" fill="#EEF2FF" stroke="#C7D2FE"/>
+        <text x="652" y="41" font-size="12" font-weight="700" fill="#4F46E5">📝【测评】作答中</text>
+
+        <text x="820" y="42" font-size="13" font-weight="700" fill="#0F172A">📅 8/24 20:00</text>
+        <rect x="920" y="20" width="74" height="32" rx="16" fill="#F1F5F9" stroke="#E2E8F0"/>
+        <text x="930" y="40" font-size="11.5" font-weight="700" fill="#334155">时间线 ➔</text>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" width="1440" height="900">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap');
+      * { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+      .text-title { font-size: 18px; font-weight: 800; fill: #0F172A; }
+      .text-label { font-size: 12.5px; font-weight: 700; fill: #334155; }
+      .text-hint { font-size: 11.5px; fill: #94A3B8; }
+    </style>
+    <filter id="modalBackdropBlur">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+    <filter id="modalShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="32" flood-color="#000000" flood-opacity="0.2"/>
+    </filter>
+    <linearGradient id="primaryBtn" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#0F172A"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 1. Background Workspace (Dimmed & Blurred) -->
+  <rect width="1440" height="900" fill="#FDFCF8"/>
+  <rect width="1440" height="900" fill="rgba(15, 23, 42, 0.45)"/>
+
+  <!-- ==================== MODAL CONTAINER (580px width) ==================== -->
+  <g transform="translate(430, 90)" filter="url(#modalShadow)">
+    <!-- Modal Box Canvas -->
+    <rect width="580" height="720" rx="18" fill="#FFFFFF" stroke="#E2DED5" stroke-width="1"/>
+
+    <!-- Modal Header -->
+    <g transform="translate(36, 36)">
+      <rect x="0" y="0" width="40" height="40" rx="10" fill="#EEF2FF"/>
+      <text x="11" y="27" font-size="18">✨</text>
+      
+      <text x="56" y="20" class="text-title">手动建档 / 推进求职环节</text>
+      <text x="56" y="38" font-size="12" fill="#64748B">支持微信、电话、邮件邀约或自主投递情况下的环节录入</text>
+
+      <!-- Close X Button -->
+      <circle cx="490" cy="18" r="14" fill="#F1F5F9"/>
+      <text x="485" y="23" font-size="13" font-weight="700" fill="#64748B">✕</text>
+    </g>
+
+    <line x1="36" y1="96" x2="544" y2="96" stroke="#F1F5F9" stroke-width="1.5"/>
+
+    <!-- Modal Body Form -->
+    <g transform="translate(36, 116)">
+      <!-- Row 1: Company & Department -->
+      <g>
+        <text x="0" y="14" class="text-label">目标公司名称 <tspan fill="#EF4444">*</tspan></text>
+        <rect x="0" y="24" width="245" height="38" rx="8" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="1"/>
+        <text x="14" y="48" font-size="13" font-weight="700" fill="#0F172A">腾讯科技 (Tencent)</text>
+
+        <text x="263" y="14" class="text-label">部门 / 事业群 (选填)</text>
+        <rect x="263" y="24" width="245" height="38" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+        <text x="277" y="48" font-size="13" fill="#64748B">WXG 微信事业群</text>
+      </g>
+
+      <!-- Row 2: Position -->
+      <g transform="translate(0, 80)">
+        <text x="0" y="14" class="text-label">投递岗位名称</text>
+        <rect x="0" y="24" width="508" height="38" rx="8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+        <text x="14" y="48" font-size="13" fill="#334155">前端研发工程师 (2027校招)</text>
+      </g>
+
+      <!-- Row 3: Stage Preset Pills -->
+      <g transform="translate(0, 160)">
+        <text x="0" y="14" class="text-label">推进环节类型 <tspan fill="#EF4444">*</tspan> <tspan class="text-hint">(点击快捷预设)</tspan></text>
+
+        <!-- Preset Pills -->
+        <g transform="translate(0, 24)">
+          <rect x="0" y="0" width="76" height="28" rx="14" fill="#F1F5F9" stroke="#CBD5E1"/>
+          <text x="12" y="18" font-size="11.5" font-weight="600" fill="#475569">网申提交</text>
+
+          <rect x="84" y="0" width="76" height="28" rx="14" fill="#F1F5F9" stroke="#CBD5E1"/>
+          <text x="96" y="18" font-size="11.5" font-weight="600" fill="#475569">在线测评</text>
+
+          <rect x="168" y="0" width="76" height="28" rx="14" fill="#F1F5F9" stroke="#CBD5E1"/>
+          <text x="180" y="18" font-size="11.5" font-weight="600" fill="#475569">技术一面</text>
+
+          <!-- Selected: 二面 -->
+          <rect x="252" y="0" width="76" height="28" rx="14" fill="#EEF2FF" stroke="#6366F1" stroke-width="1.5"/>
+          <text x="264" y="18" font-size="11.5" font-weight="700" fill="#4F46E5">技术二面✓</text>
+
+          <rect x="336" y="0" width="76" height="28" rx="14" fill="#F1F5F9" stroke="#CBD5E1"/>
+          <text x="348" y="18" font-size="11.5" font-weight="600" fill="#475569">HR 终面</text>
+
+          <rect x="420" y="0" width="88" height="28" rx="14" fill="#FEF3C7" stroke="#F59E0B"/>
+          <text x="432" y="18" font-size="11.5" font-weight="700" fill="#B45309">🏆 录用Offer</text>
+        </g>
+      </g>
+
+      <!-- Row 4: Schedule Time & Meeting Info -->
+      <g transform="translate(0, 240)">
+        <text x="0" y="14" class="text-label">约定时间 (选填)</text>
+        <rect x="0" y="24" width="245" height="38" rx="8" fill="#F8FAFC" stroke="#E2E8F0"/>
+        <text x="14" y="48" font-size="13" fill="#0F172A">📅 2026-08-28 15:00</text>
+
+        <text x="263" y="14" class="text-label">会议号 / 面试链接 / 凭据</text>
+        <rect x="263" y="24" width="245" height="38" rx="8" fill="#F8FAFC" stroke="#E2E8F0"/>
+        <text x="277" y="48" font-size="12.5" fill="#0F172A">腾讯会议 666-888-999</text>
+      </g>
+
+      <!-- Row 5: Expectation & Notes -->
+      <g transform="translate(0, 320)">
+        <text x="0" y="14" class="text-label">本轮等待预期</text>
+        <rect x="0" y="24" width="508" height="38" rx="8" fill="#F8FAFC" stroke="#E2E8F0"/>
+        <text x="14" y="48" font-size="12.5" fill="#475569">等待技术二面通过反馈</text>
+      </g>
+
+      <!-- Row 6: Initial Status Radio -->
+      <g transform="translate(0, 395)">
+        <text x="0" y="14" class="text-label">初始准入决策</text>
+        <g transform="translate(0, 26)">
+          <circle cx="10" cy="10" r="7" fill="#10B981"/>
+          <circle cx="10" cy="10" r="3" fill="#FFF"/>
+          <text x="26" y="14" font-size="12.5" font-weight="600" fill="#0F172A">直接审核通过 (立即展示在看板与桌面挂件)</text>
+        </g>
+      </g>
+    </g>
+
+    <!-- Modal Footer -->
+    <g transform="translate(36, 640)">
+      <line x1="0" y1="0" x2="508" y2="0" stroke="#F1F5F9" stroke-width="1.5"/>
+      <rect x="310" y="18" width="84" height="38" rx="8" fill="#F1F5F9" stroke="#E2E8F0"/>
+      <text x="338" y="42" font-size="13" font-weight="600" fill="#64748B">取消</text>
+
+      <rect x="404" y="18" width="104" height="38" rx="8" fill="url(#primaryBtn)"/>
+      <text x="424" y="42" font-size="13" font-weight="700" fill="#FFFFFF">⚡️ 立即保存</text>
+    </g>
+  </g>
+</svg>

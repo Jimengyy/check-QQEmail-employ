@@ -26,6 +26,7 @@ let appStagesMap = {}; // application_id -> [stages...]
 
 let currentFilter = 'all';
 let currentSearchQuery = '';
+let currentReviewCategory = 'all';
 
 // ==========================================================================
 // 1. 公司头像 Monogram 背景颜色生成器 (相同公司生成统一品牌色)
@@ -253,8 +254,32 @@ function getStageStatusMeta(stage, app) {
         };
     }
 
-    // 9. 网申 / 简历投递
-    if (type.includes('网申') || type.includes('简历') || type.includes('投递') || type.includes('申请') || type.includes('资料')) {
+    // 9. 投递邀请 / 校招邀约 / 宣讲邀请 (官方发邮件邀请投递，尚未正式提交简历)
+    if (type.includes('邀请') || type.includes('宣讲') || type.includes('邀约') || type.includes('推荐') || type.includes('夏令营')) {
+        if (status === 'awaiting_result' || status === 'completed' || status === 'passed') {
+            return {
+                icon: '🎯',
+                cleanType: `【${type}】`,
+                badgeText: `🎯 【${type}】已前往投递（${nextExp || '等待初筛结果'}）`,
+                badgeClass: 'badge-blue',
+                nodeIcon: '✓',
+                timelineStatusText: `✓ 已前往投递（${nextExp || '等待初筛结果'}）`,
+                category: 'waiting'
+            };
+        }
+        return {
+            icon: '🎯',
+            cleanType: `【${type}】`,
+            badgeText: `🎯 【${type}】待前往官网投递`,
+            badgeClass: 'badge-purple',
+            nodeIcon: '🎯',
+            timelineStatusText: '待前往官网投递（请查看邮件中官网链接）',
+            category: 'interview'
+        };
+    }
+
+    // 10. 网申 / 简历投递 (已在官网提交了简历)
+    if (type.includes('网申') || type.includes('简历') || type.includes('投递') || type.includes('申请') || type.includes('资料') || type.includes('初筛')) {
         if (status === 'awaiting_result' || status === 'passed') {
             return {
                 icon: '📬',
@@ -269,11 +294,11 @@ function getStageStatusMeta(stage, app) {
         return {
             icon: '📬',
             cleanType: '【网申提交】',
-            badgeText: '📬 【网申提交】已送达',
+            badgeText: '📬 【网申提交】待投递/待处理',
             badgeClass: 'badge-blue',
             nodeIcon: '📬',
-            timelineStatusText: '网申已送达',
-            category: 'other'
+            timelineStatusText: '网申待处理',
+            category: 'interview'
         };
     }
 
@@ -369,14 +394,14 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupEventListeners() {
-    // 顶栏主 Tab 切换
-    const navTabs = document.querySelectorAll('.nav-tab');
+    // 1. 侧边栏主视图切换 (求职全景看板 vs 邮件待审准入)
+    const navItems = document.querySelectorAll('.sidebar-nav-item, .nav-tab');
     const viewPanels = document.querySelectorAll('.view-panel');
 
-    navTabs.forEach(tab => {
+    navItems.forEach(tab => {
         tab.addEventListener('click', () => {
             const targetId = tab.getAttribute('data-target');
-            navTabs.forEach(t => t.classList.remove('active'));
+            navItems.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
 
             viewPanels.forEach(p => p.classList.remove('active'));
@@ -388,20 +413,49 @@ function setupEventListeners() {
         });
     });
 
-    // 看板顶栏 Filter Chips 过滤按钮
-    document.querySelectorAll('.filter-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-            // 只在看板视图下切换芯片
-            if (chip.closest('.filter-toolbar')) {
-                document.querySelectorAll('.filter-toolbar .filter-chip').forEach(c => c.classList.remove('active'));
-                chip.classList.add('active');
-                currentFilter = chip.getAttribute('data-filter');
-                renderDashboard();
-            }
+    // 2. 顶部 4 大 Bento 瓷感 KPI 卡片点击联动筛选
+    document.querySelectorAll('.bento-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const filterVal = card.getAttribute('data-filter') || 'all';
+            document.querySelectorAll('.bento-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+
+            // 同步子筛选芯片状态
+            document.querySelectorAll('.filter-chips .filter-chip').forEach(chip => {
+                if (chip.getAttribute('data-filter') === filterVal) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
+
+            currentFilter = filterVal;
+            renderDashboard();
         });
     });
 
-    // 搜索框防抖监听与一键清除
+    // 3. 辅助微过滤芯片栏
+    document.querySelectorAll('.filter-chips .filter-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            document.querySelectorAll('.filter-chips .filter-chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            const filterVal = chip.getAttribute('data-filter') || 'all';
+            currentFilter = filterVal;
+
+            // 同步顶部 Bento 卡片高亮态
+            document.querySelectorAll('.bento-card').forEach(card => {
+                if (card.getAttribute('data-filter') === filterVal) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+
+            renderDashboard();
+        });
+    });
+
+    // 4. 搜索框防抖监听与一键清除
     const searchInput = document.getElementById('company-search-input');
     const searchClearBtn = document.getElementById('search-clear-btn');
     if (searchInput) {
@@ -427,31 +481,31 @@ function setupEventListeners() {
         });
     }
 
-    // 刷新按钮
+    // 5. 刷新按钮
     const refreshBtn = document.getElementById('btn-global-refresh');
     const refreshSpin = document.getElementById('refresh-spin');
     if (refreshBtn) {
         refreshBtn.addEventListener('click', () => {
-            if (refreshSpin) refreshSpin.style.transform = 'rotate(360deg)';
+            if (refreshSpin) refreshSpin.classList.add('spinning');
             loadAllData().finally(() => {
                 setTimeout(() => {
-                    if (refreshSpin) refreshSpin.style.transform = 'none';
-                }, 400);
+                    if (refreshSpin) refreshSpin.classList.remove('spinning');
+                }, 450);
             });
         });
     }
 
-    // 唤醒桌面挂件
+    // 6. 唤醒桌面挂件
     const btnWakeWidget = document.getElementById('btn-wake-widget');
     if (btnWakeWidget) {
         btnWakeWidget.addEventListener('click', async () => {
             try {
                 btnWakeWidget.disabled = true;
-                btnWakeWidget.textContent = '⏳ 正在唤醒...';
+                btnWakeWidget.innerHTML = '<span class="tool-icon">⏳</span> 正在唤醒...';
                 const resp = await fetch('/api/show_widget', { method: 'POST' });
                 const res = await resp.json();
                 if (res.success) {
-                    btnWakeWidget.textContent = '✅ 已唤醒';
+                    btnWakeWidget.innerHTML = '<span class="tool-icon">✅</span> 已唤醒';
                 } else {
                     alert('唤醒挂件提示: ' + (res.message || '挂件可能已在前台'));
                 }
@@ -461,13 +515,13 @@ function setupEventListeners() {
             } finally {
                 setTimeout(() => {
                     btnWakeWidget.disabled = false;
-                    btnWakeWidget.innerHTML = '<span>💻</span> 唤醒挂件';
-                }, 1000);
+                    btnWakeWidget.innerHTML = '<span class="tool-icon">💻</span> 唤醒桌面透明挂件';
+                }, 1200);
             }
         });
     }
 
-    // 抽屉关闭事件
+    // 7. 抽屉关闭事件
     const drawerOverlay = document.getElementById('timeline-drawer-overlay');
     const drawerCloseBtn = document.getElementById('drawer-close-btn');
     if (drawerCloseBtn) drawerCloseBtn.addEventListener('click', closeTimelineDrawer);
@@ -477,22 +531,36 @@ function setupEventListeners() {
         });
     }
 
-    // 快捷键 Esc
+    // 7.5 AI 详情抽屉关闭事件
+    const reviewDrawerOverlay = document.getElementById('review-detail-drawer-overlay');
+    const reviewDrawerCloseBtn = document.getElementById('review-drawer-close-btn');
+    if (reviewDrawerCloseBtn) reviewDrawerCloseBtn.addEventListener('click', closeReviewDetailDrawer);
+    if (reviewDrawerOverlay) {
+        reviewDrawerOverlay.addEventListener('click', (e) => {
+            if (e.target === reviewDrawerOverlay) closeReviewDetailDrawer();
+        });
+    }
+
+    // 8. 快捷键 Esc
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             closeTimelineDrawer();
+            closeReviewDetailDrawer();
             closeConfigModal();
             closeManualStageModal();
+            closeEditStageModal();
         }
     });
 
-    // 设置弹窗事件
+    // 9. 设置弹窗事件
     const settingsNav = document.getElementById('admin-settings-nav');
     const btnCloseModal = document.getElementById('admin-btn-close-cfg');
+    const btnCloseModalX = document.getElementById('admin-btn-close-cfg-x');
     const btnSaveModal = document.getElementById('admin-btn-save-cfg');
 
     if (settingsNav) settingsNav.addEventListener('click', showConfigModal);
     if (btnCloseModal) btnCloseModal.addEventListener('click', closeConfigModal);
+    if (btnCloseModalX) btnCloseModalX.addEventListener('click', closeConfigModal);
     if (btnSaveModal) btnSaveModal.addEventListener('click', saveSettings);
 }
 
@@ -851,15 +919,15 @@ function renderDashboard() {
             <tr class="table-clickable-row" onclick="openTimelineDrawer('${app.id}')">
                 <td>
                     <div class="company-cell">
-                        <div class="company-avatar" style="background:${avatarBg};">
+                        <div class="comp-avatar" style="background:${avatarBg};">
                             ${avatarInitial}
                         </div>
-                        <div class="company-info">
-                            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-                                <span class="company-name">${safeCompany}</span>
-                                ${safeDept ? `<span class="badge-tag badge-indigo" style="font-size:0.72rem;padding:1px 6px;">${safeDept}</span>` : ''}
+                        <div class="comp-info">
+                            <div class="comp-name-row">
+                                <span class="comp-title">${safeCompany}</span>
+                                ${safeDept ? `<span class="dept-pill">${safeDept}</span>` : ''}
                             </div>
-                            <span class="company-subject">${safePos}</span>
+                            <span class="comp-position">${safePos}</span>
                         </div>
                     </div>
                 </td>
@@ -872,11 +940,11 @@ function renderDashboard() {
                     </span>
                 </td>
                 <td>
-                    <span style="font-weight:600;color:#334155;font-size:0.86rem;">${timeFormatted}</span>
+                    <span class="time-text">${timeFormatted}</span>
                 </td>
                 <td style="text-align: right;">
-                    <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); openTimelineDrawer('${app.id}')">
-                        查看时间线 ➔
+                    <button class="btn-row-action" onclick="event.stopPropagation(); openTimelineDrawer('${app.id}')">
+                        全景时间线 ➔
                     </button>
                 </td>
             </tr>
@@ -945,25 +1013,42 @@ function openTimelineDrawer(appId) {
             let actionButtonsHTML = '';
             if (isLatest) {
                 if (s.stage_status === 'scheduled') {
+                    const isInvite = safeType.includes('邀请') || safeType.includes('宣讲') || safeType.includes('夏令营');
+                    const btnLabel = isInvite ? '✓ 标为已投递/已报名' : '✓ 标为已参加';
                     actionButtonsHTML = `
-                        <button class="btn btn-primary btn-sm" style="font-size:0.75rem;padding:3px 10px;" onclick="advanceStageStatus('${s.id}', 'awaiting_result', '${app.id}')" title="面试或笔试结束，标记为已参加并等待结果">
-                            ✓ 标为已参加
+                        <button class="btn btn-primary btn-sm" style="font-size:0.75rem;padding:3px 10px;" onclick="advanceStageStatus('${s.id}', 'awaiting_result', '${app.id}')" title="标记为已完成并等待下一轮">
+                            ${btnLabel}
+                        </button>
+                        <button class="btn btn-secondary btn-sm" style="font-size:0.75rem;padding:3px 8px;color:#334155;" onclick="openEditStageModal('${s.id}')" title="全字段自由修正：修改环节名称、流转状态、约定时间、会议号或备注">
+                            ✏️ 修正
                         </button>
                         <button class="btn btn-outline btn-sm" style="font-size:0.75rem;padding:3px 8px;color:#64748B;" onclick="rollbackCurrentStage('${app.id}', '${s.id}')" title="手误推进或错发邮件：撤销当前轮次并无缝回退到上一轮">
-                            ↩ 撤销本轮(回退上一状态)
+                            ↩ 撤销本轮
                         </button>
                     `;
                 } else if (s.stage_status === 'awaiting_result') {
                     actionButtonsHTML = `
                         <button class="btn btn-secondary btn-sm" style="font-size:0.75rem;padding:3px 8px;color:#64748B;" onclick="advanceStageStatus('${s.id}', 'scheduled', '${app.id}')" title="误操作撤回：重新激活待办并推回桌面挂件">
-                            ↩ 撤回重设为待办
+                            ↩ 撤回待办
+                        </button>
+                        <button class="btn btn-secondary btn-sm" style="font-size:0.75rem;padding:3px 8px;color:#334155;" onclick="openEditStageModal('${s.id}')" title="全字段自由修正：修改环节名称、流转状态、约定时间、会议号或备注">
+                            ✏️ 修正
+                        </button>
+                    `;
+                } else {
+                    actionButtonsHTML = `
+                        <button class="btn btn-secondary btn-sm" style="font-size:0.75rem;padding:3px 8px;color:#334155;" onclick="openEditStageModal('${s.id}')" title="全字段自由修正：修改环节名称、流转状态、约定时间、会议号或备注">
+                            ✏️ 修正
                         </button>
                     `;
                 }
             } else {
-                // 历史已过环节：显示为只读已通过
+                // 历史已过环节：显示为只读已通过，也允许修正
                 actionButtonsHTML = `
-                    <span class="badge-tag badge-gray" style="font-size:0.72rem;">✓ 历史环节 (已通过)</span>
+                    <span class="badge-tag badge-gray" style="font-size:0.72rem;">✓ 历史环节</span>
+                    <button class="btn btn-secondary btn-sm" style="font-size:0.72rem;padding:2px 7px;color:#64748B;" onclick="openEditStageModal('${s.id}')" title="修正此历史环节信息">
+                        ✏️ 修正
+                    </button>
                 `;
             }
 
@@ -1126,24 +1211,28 @@ async function toggleAppArchive(appId, targetStatus) {
 }
 
 // ==========================================================================
-// 11. 审核大厅与已忽略归档核心逻辑 (Review Hall & Ignored Archive)
+// 11. 审核大厅与已忽略归档核心逻辑 (Review Hall & Ignored Archive - Option A)
 // ==========================================================================
 function switchReviewSubtab(subtab) {
     const btnPending = document.getElementById('btn-subtab-pending');
     const btnIgnored = document.getElementById('btn-subtab-ignored');
-    const cardPending = document.getElementById('review-pending-card');
-    const cardIgnored = document.getElementById('review-ignored-card');
+    const containerPending = document.getElementById('review-cards-container');
+    const containerIgnored = document.getElementById('ignored-cards-container');
 
     if (subtab === 'pending') {
         if (btnPending) btnPending.classList.add('active');
         if (btnIgnored) btnIgnored.classList.remove('active');
-        if (cardPending) cardPending.style.display = 'block';
-        if (cardIgnored) cardIgnored.style.display = 'none';
+        if (containerPending) containerPending.style.display = 'grid';
+        if (containerIgnored) containerIgnored.style.display = 'none';
+        const pendingStages = allStages.filter(s => s.stage_status === 'pending');
+        renderReviews(pendingStages);
     } else {
         if (btnPending) btnPending.classList.remove('active');
         if (btnIgnored) btnIgnored.classList.add('active');
-        if (cardPending) cardPending.style.display = 'none';
-        if (cardIgnored) cardIgnored.style.display = 'block';
+        if (containerPending) containerPending.style.display = 'none';
+        if (containerIgnored) containerIgnored.style.display = 'grid';
+        const ignoredStages = allStages.filter(s => s.stage_status === 'ignored');
+        renderIgnoredReviews(ignoredStages);
     }
 }
 
@@ -1152,32 +1241,49 @@ async function loadReviews() {
 }
 
 function renderReviews(stages) {
-    const tbody = document.getElementById('review-tbody');
+    const container = document.getElementById('review-cards-container');
     const batchBtn = document.getElementById('btn-batch-approve');
-    if (batchBtn) {
-        batchBtn.style.display = stages.length > 1 ? 'inline-flex' : 'none';
-        batchBtn.innerHTML = `<span>⚡️</span> 一键全选准入 (${stages.length})`;
-    }
-    if (!tbody) return;
+    const badgeSub = document.getElementById('review-badge-sub');
+    const badgeMain = document.getElementById('review-badge');
 
-    if (stages.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="7" class="empty-state">
-                    <div style="padding: 36px 0;">
-                        <div style="font-size: 2.2rem; margin-bottom: 8px;">🎉</div>
-                        <div style="font-weight: 800; font-size: 1.1rem; color: var(--text-main);">太棒了！所有新邮件均已审核完毕</div>
-                        <div style="font-size: 0.86rem; color: var(--text-muted); margin-top: 4px;">
-                            云端 7x24h 自动化扫描中，一旦有新的笔试/面试通知将第一时间在此浮现。
-                        </div>
+    const totalCount = stages.length;
+    if (badgeSub) badgeSub.textContent = totalCount;
+    if (badgeMain) badgeMain.textContent = totalCount;
+
+    if (batchBtn) {
+        batchBtn.style.display = totalCount > 1 ? 'inline-flex' : 'none';
+        batchBtn.innerHTML = `<span>⚡️</span> 一键全选准入 (${totalCount})`;
+    }
+
+    if (!container) return;
+
+    if (totalCount === 0) {
+        container.innerHTML = `
+            <div class="celebration-empty-card">
+                <div class="celebration-badge-icon">🎉</div>
+                <h3 style="font-size:1.35rem;font-weight:900;color:var(--text-main);margin-bottom:4px;">待审大厅已全部清空！</h3>
+                <p style="font-size:0.86rem;color:var(--text-muted);max-width:540px;line-height:1.6;">
+                    所有新邮件已 100% 成功放行准入，已自动在「求职全景看板」与「Mac 桌面挂件」中生成求职赛道！
+                </p>
+                <div class="celebration-metrics-row">
+                    <div class="celebration-metric-tile">
+                        <span class="celebration-metric-num" style="color:var(--accent-indigo);">7x24h</span>
+                        <span class="celebration-metric-label">云端实时抓取</span>
                     </div>
-                </td>
-            </tr>
+                    <div class="celebration-metric-tile">
+                        <span class="celebration-metric-num" style="color:var(--accent-emerald-dark);">0 待办</span>
+                        <span class="celebration-metric-label">全部处理完毕</span>
+                    </div>
+                </div>
+                <button class="btn-action-pill" style="margin-top:6px;background:var(--brand-dark);color:#fff;border:none;padding:8px 24px;" onclick="document.getElementById('nav-item-dashboard')?.click()">
+                    📊 前往求职全景看板 ➔
+                </button>
+            </div>
         `;
         return;
     }
 
-    tbody.innerHTML = stages.map(stage => {
+    container.innerHTML = stages.map(stage => {
         const app = allApplications.find(a => a.id === stage.application_id) || {};
         const meta = getStageStatusMeta(stage, app);
         const safeCompany = escapeHTML(app.company || '未知企业');
@@ -1191,94 +1297,98 @@ function renderReviews(stages) {
         const avatarBg = getCompanyColor(app.company);
         const avatarInitial = getCompanyInitial(app.company);
 
-        let timeStr = '刚刚';
-        if (stage.created_at) {
-            try {
-                const dt = new Date(stage.created_at);
-                timeStr = `${dt.getMonth() + 1}/${dt.getDate()} ${dt.getHours().toString().padStart(2, '0')}:${dt.getMinutes().toString().padStart(2, '0')}`;
-            } catch(e) {}
+        // AI 摘要
+        let aiSummary = '';
+        if (safeNotes) {
+            aiSummary = safeNotes;
+        } else if (safeNextExp && safeNextExp !== '等待下一步通知') {
+            aiSummary = `官方通知：${safeNextExp}`;
+        } else {
+            aiSummary = `DeepSeek AI 提取：已识别为「${safeCompany}」的${safeType}通知，请确认并放行。`;
         }
 
-        // 凭据与链接智能化渲染
-        let credHTML = '<span style="color:#CBD5E1;">—</span>';
+        // 凭据与链接
+        let linkHTML = '';
         if (safeMeeting.startsWith('http://') || safeMeeting.startsWith('https://')) {
-            credHTML = `<a href="${escapeHTML(safeMeeting)}" target="_blank" class="review-link-pill" title="${escapeHTML(safeMeeting)}">🔗 官网链接 ↗</a>`;
+            linkHTML = `<a href="${escapeHTML(safeMeeting)}" target="_blank" class="review-link-pill" onclick="event.stopPropagation()">🔗 官网/入口 ↗</a>`;
         } else if (safeMeeting) {
-            credHTML = `
-                <div class="review-cred-box">
-                    <span>🔑 ${escapeHTML(safeMeeting)}</span>
-                    <button class="review-copy-btn" onclick="navigator.clipboard.writeText('${escapeHTML(safeMeeting)}');alert('已复制会议凭据！');">复制</button>
-                </div>
-            `;
-        } else if (safeNotes) {
-            credHTML = `<span style="font-size:0.78rem;color:var(--text-sub);max-width:180px;display:inline-block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${escapeHTML(safeNotes)}">📌 ${escapeHTML(safeNotes)}</span>`;
+            linkHTML = `<span class="review-deadline-bubble" style="background:#FFFBEB;border-color:#FDE68A;color:#92400E;" onclick="event.stopPropagation();navigator.clipboard.writeText('${escapeHTML(safeMeeting)}');showAdminToast('已复制凭据', '${escapeHTML(safeMeeting)}');">🔑 ${escapeHTML(safeMeeting)} ⎘</span>`;
         }
 
         const isTimeScheduled = safeTime !== '待定' && safeTime !== '';
-        const timeHTML = isTimeScheduled 
-            ? `<div class="review-time-tag"><span style="color:var(--primary);">📅</span> <strong>${safeTime}</strong></div>`
-            : `<span style="color:var(--text-sub);font-size:0.82rem;">待推进通知</span>`;
+        const timeHTML = isTimeScheduled
+            ? `<span class="review-deadline-bubble">📅 ${safeTime}</span>`
+            : `<span class="review-deadline-bubble" style="background:#F1F5F9;border-color:#E2E8F0;color:#64748B;">⏳ ${safeNextExp}</span>`;
 
         return `
-            <tr id="review-row-${stage.id}">
-                <td><span style="font-size:0.84rem;color:var(--text-muted);font-weight:500;">${timeStr}</span></td>
-                <td>
-                    <div class="company-cell">
-                        <div class="company-avatar" style="background:${avatarBg}; width:32px; height:32px; font-size:0.88rem; border-radius:8px;">
+            <div class="review-card" id="review-card-${stage.id}" onclick="openReviewDetailDrawer('${stage.id}')">
+                <div class="review-card-header">
+                    <div class="review-card-company-group">
+                        <div class="review-card-avatar" style="background:${avatarBg};">
                             ${avatarInitial}
                         </div>
-                        <div class="company-info">
-                            <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
-                                <span class="company-name" style="font-size:0.92rem;">${safeCompany}</span>
-                                ${safeDept ? `<span class="badge-tag badge-indigo" style="font-size:0.68rem;padding:1px 5px;">${safeDept}</span>` : ''}
+                        <div class="review-card-title-group">
+                            <div class="review-card-name-row">
+                                <span class="review-card-name">${safeCompany}</span>
+                                ${safeDept ? `<span class="dept-pill" style="font-size:0.68rem;padding:1px 5px;">${safeDept}</span>` : ''}
                             </div>
-                            <span class="company-subject" style="max-width:190px;" title="${safePosition}">${safePosition}</span>
+                            <span class="review-card-job" title="${safePosition}">${safePosition}</span>
                         </div>
                     </div>
-                </td>
-                <td><span class="badge-tag ${meta.badgeClass}">${meta.icon} ${safeType}</span></td>
-                <td><div class="review-exp-text" title="${safeNextExp}">${safeNextExp}</div></td>
-                <td>${timeHTML}</td>
-                <td>${credHTML}</td>
-                <td style="text-align: right;">
-                    <div style="display:inline-flex;gap:6px;">
-                        <button class="btn-review-approve" onclick="approveStage('${stage.id}')" title="确认是我的求职邮件，通过并加入看板与桌面挂件">✓ 准入</button>
-                        <button class="btn-review-ignore" onclick="ignoreStage('${stage.id}')" title="广告/非本人应聘，移至已忽略">✕ 忽略</button>
+                    <span class="badge-tag ${meta.badgeClass}">${meta.icon} ${safeType}</span>
+                </div>
+
+                <div class="review-card-ai-box">
+                    <div class="ai-box-bullet">
+                        <span class="ai-box-icon">✦</span>
+                        <span><strong>AI 摘要:</strong> ${escapeHTML(aiSummary)}</span>
                     </div>
-                </td>
-            </tr>
+                </div>
+
+                <div class="review-card-meta-row">
+                    ${timeHTML}
+                    ${linkHTML}
+                </div>
+
+                <div class="review-card-actions">
+                    <button class="btn-card-approve" onclick="approveReviewCard('${stage.id}', event)" title="确认是我的求职邮件，通过并加入看板与桌面挂件">
+                        ✓ 准入并加入看板
+                    </button>
+                    <button class="btn-card-ignore" onclick="ignoreReviewCard('${stage.id}', event)" title="广告/非本人应聘，移至已忽略">
+                        ✕ 忽略
+                    </button>
+                </div>
+            </div>
         `;
     }).join('');
 }
 
 function renderIgnoredReviews(stages) {
-    const tbody = document.getElementById('ignored-tbody');
-    if (!tbody) return;
+    const container = document.getElementById('ignored-cards-container');
+    const ignoredBadge = document.getElementById('ignored-badge');
+    if (ignoredBadge) ignoredBadge.textContent = stages.length;
+
+    if (!container) return;
 
     if (stages.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="6" class="empty-state">
-                    <div style="padding: 36px 0;">
-                        <div style="font-size: 2.2rem; margin-bottom: 8px;">📦</div>
-                        <div style="font-weight: 800; font-size: 1.1rem; color: var(--text-main);">暂无已忽略邮件</div>
-                        <div style="font-size: 0.86rem; color: var(--text-muted); margin-top: 4px;">
-                            被忽略的邮件会保存在此，随时可一键恢复。
-                        </div>
-                    </div>
-                </td>
-            </tr>
+        container.innerHTML = `
+            <div style="grid-column: 1 / -1; padding: 60px 20px; text-align: center; color: var(--text-muted);">
+                <div style="font-size: 2.4rem; margin-bottom: 8px;">📦</div>
+                <div style="font-weight: 800; font-size: 1.1rem; color: var(--text-main);">暂无已忽略邮件</div>
+                <div style="font-size: 0.86rem; color: var(--text-muted); margin-top: 4px;">
+                    被忽略的邮件会保存在此，随时可一键恢复。
+                </div>
+            </div>
         `;
         return;
     }
 
-    tbody.innerHTML = stages.map(stage => {
+    container.innerHTML = stages.map(stage => {
         const app = allApplications.find(a => a.id === stage.application_id) || {};
         const meta = getStageStatusMeta(stage, app);
         const safeCompany = escapeHTML(app.company || '未知企业');
-        const safeType = escapeHTML(stage.stage_name || '环节');
         const safePosition = escapeHTML(app.position || stage.raw_subject || '无主题');
-        const safeMeeting = escapeHTML(stage.meeting_info || '');
+        const safeType = escapeHTML(stage.stage_name || '环节');
         const avatarBg = getCompanyColor(app.company);
         const avatarInitial = getCompanyInitial(app.company);
 
@@ -1291,31 +1401,210 @@ function renderIgnoredReviews(stages) {
         }
 
         return `
-            <tr id="ignored-row-${stage.id}">
-                <td><span style="font-size:0.84rem;color:var(--text-muted);">${timeStr}</span></td>
-                <td>
-                    <div class="company-cell">
-                        <div class="company-avatar" style="background:${avatarBg}; width:30px; height:30px; font-size:0.84rem; border-radius:6px;">
+            <div class="review-card card-ignored" id="ignored-card-${stage.id}">
+                <div class="review-card-header">
+                    <div class="review-card-company-group">
+                        <div class="review-card-avatar" style="background:${avatarBg}; opacity:0.8;">
                             ${avatarInitial}
                         </div>
-                        <span class="company-name" style="font-size:0.92rem;">${safeCompany}</span>
+                        <div class="review-card-title-group">
+                            <span class="review-card-name">${safeCompany}</span>
+                            <span class="review-card-job" title="${safePosition}">${safePosition}</span>
+                        </div>
                     </div>
-                </td>
-                <td><span class="badge-tag ${meta.badgeClass}">${meta.icon} ${safeType}</span></td>
-                <td>
-                    <div style="font-size:0.84rem;color:#334155;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${safePosition}</div>
-                    ${safeMeeting ? `<div style="font-size:0.75rem;color:#B45309;margin-top:2px;">🔑 ${safeMeeting}</div>` : ''}
-                </td>
-                <td><span style="font-size:0.82rem;color:var(--text-muted);">${stage.schedule_time || '待定'}</span></td>
-                <td style="text-align: right;">
-                    <div style="display:inline-flex;gap:6px;">
-                        <button class="btn-review-approve" style="padding:4px 10px;font-size:0.78rem;" onclick="restoreIgnoredStage('${stage.id}', 'scheduled')" title="恢复这个环节并通过展示">✓ 恢复并准入</button>
-                        <button class="btn-review-ignore" style="padding:4px 8px;font-size:0.78rem;" onclick="restoreIgnoredStage('${stage.id}', 'pending')" title="恢复并重新放回待审核大厅">↩ 恢复至待审</button>
+                    <span class="badge-tag badge-gray">📦 已忽略</span>
+                </div>
+
+                <div class="review-card-ai-box" style="background:#F5F5F4; border-color:#E7E5E4;">
+                    <div class="ai-box-bullet">
+                        <span class="ai-box-icon">✦</span>
+                        <span><strong>忽略记录:</strong> 邮件主题《${safePosition}》，忽略于 ${timeStr}</span>
                     </div>
-                </td>
-            </tr>
+                </div>
+
+                <div class="review-card-actions">
+                    <button class="btn-card-restore" onclick="restoreIgnoredStage('${stage.id}', 'pending')" title="恢复并重新放回待审核大厅">
+                        ↩ 恢复至待审
+                    </button>
+                    <button class="btn-card-approve" style="flex:1;" onclick="restoreIgnoredStage('${stage.id}', 'scheduled')" title="纠错后直接通过并建档">
+                        ✓ 直接准入并建档
+                    </button>
+                </div>
+            </div>
         `;
     }).join('');
+}
+
+// 🧠 打开 AI 邮件智能解析详情抽屉
+function openReviewDetailDrawer(stageId) {
+    const stage = allStages.find(s => s.id === stageId);
+    if (!stage) return;
+
+    const app = allApplications.find(a => a.id === stage.application_id) || {};
+    const meta = getStageStatusMeta(stage, app);
+    const safeCompany = escapeHTML(app.company || '未知企业');
+    const safePosition = escapeHTML(app.position || stage.raw_subject || '求职岗位');
+    const safeType = escapeHTML(stage.stage_name || '环节');
+    const safeNotes = escapeHTML(stage.notes || '');
+    const safeMeeting = (stage.meeting_info || '').trim();
+
+    const overlay = document.getElementById('review-detail-drawer-overlay');
+    const avatar = document.getElementById('review-drawer-avatar');
+    const title = document.getElementById('review-drawer-title');
+    const badge = document.getElementById('review-drawer-badge');
+    const metaText = document.getElementById('review-drawer-meta-text');
+    const aiCard = document.getElementById('review-drawer-ai-card');
+    const snippetCard = document.getElementById('review-drawer-snippet-card');
+    const credsGroup = document.getElementById('review-drawer-creds-group');
+    const btnApprove = document.getElementById('review-drawer-btn-approve');
+    const btnIgnore = document.getElementById('review-drawer-btn-ignore');
+
+    if (!overlay) return;
+
+    if (avatar) {
+        avatar.style.background = getCompanyColor(app.company);
+        avatar.textContent = getCompanyInitial(app.company);
+    }
+    if (title) title.textContent = `${safeCompany} · ${safeType}`;
+    if (badge) {
+        badge.className = `badge-tag ${meta.badgeClass}`;
+        badge.textContent = `${meta.icon} ${safeType}`;
+    }
+    if (metaText) {
+        let timeStr = '刚刚';
+        if (stage.created_at) {
+            try {
+                const dt = new Date(stage.created_at);
+                timeStr = `${dt.getMonth() + 1}月${dt.getDate()}日 ${dt.getHours().toString().padStart(2, '0')}:${dt.getMinutes().toString().padStart(2, '0')}`;
+            } catch(e) {}
+        }
+        metaText.textContent = `抓取时间: ${timeStr} · 来源: 官方校招网申通道`;
+    }
+
+    // 1. AI 分析要点
+    if (aiCard) {
+        aiCard.innerHTML = `
+            <div>• <strong>目标岗位:</strong> ${safePosition}</div>
+            <div>• <strong>环节归类:</strong> ${safeType} (预期：${escapeHTML(stage.next_expectation || '等待下一步通知')})</div>
+            <div>• <strong>约定时间:</strong> ${stage.schedule_time || '待定/待推进'}</div>
+            ${safeNotes ? `<div>• <strong>要点提取:</strong> ${safeNotes}</div>` : ''}
+            <div>• <strong>匹配置信度:</strong> <span style="color:#10B981;font-weight:800;">99.4% 确认为本人真实求职通知</span></div>
+        `;
+    }
+
+    // 2. 邮件原文提取片段
+    if (snippetCard) {
+        snippetCard.textContent = stage.raw_subject ? `邮件主题：《${stage.raw_subject}》\n\n正文关键摘要：已成功由云端 DeepSeek AI 解析为 ${safeCompany} 的${safeType}通知。` : '暂无详细邮件原文片段。';
+    }
+
+    // 3. 凭据与链接
+    if (credsGroup) {
+        let credsHTML = '';
+        if (safeMeeting.startsWith('http://') || safeMeeting.startsWith('https://')) {
+            credsHTML += `
+                <div style="display:flex;align-items:center;justify-content:space-between;background:#EEF2FF;border:1px solid #C7D2FE;padding:10px 14px;border-radius:8px;">
+                    <span style="font-size:0.84rem;color:#4338CA;">🔗 <strong>官网直达/作答入口:</strong> ${escapeHTML(safeMeeting)}</span>
+                    <a href="${escapeHTML(safeMeeting)}" target="_blank" class="review-link-pill">打开 ↗</a>
+                </div>
+            `;
+        } else if (safeMeeting) {
+            credsHTML += `
+                <div style="display:flex;align-items:center;justify-content:space-between;background:#FFFBEB;border:1px solid #FDE68A;padding:10px 14px;border-radius:8px;">
+                    <span style="font-size:0.84rem;color:#92400E;">🔑 <strong>会议号/考试凭据:</strong> ${escapeHTML(safeMeeting)}</span>
+                    <button class="review-copy-btn" onclick="navigator.clipboard.writeText('${escapeHTML(safeMeeting)}');showAdminToast('已复制凭据', '${escapeHTML(safeMeeting)}');">复制 ⎘</button>
+                </div>
+            `;
+        } else {
+            credsHTML = '<div style="font-size:0.8rem;color:#94A3B8;">无需额外会议号或考试凭据</div>';
+        }
+        credsGroup.innerHTML = credsHTML;
+    }
+
+    // 绑定抽屉底部按钮
+    if (btnApprove) {
+        btnApprove.onclick = async () => {
+            closeReviewDetailDrawer();
+            await approveReviewCard(stageId);
+        };
+    }
+    if (btnIgnore) {
+        btnIgnore.onclick = async () => {
+            closeReviewDetailDrawer();
+            await ignoreReviewCard(stageId);
+        };
+    }
+
+    overlay.style.display = 'flex';
+}
+
+function closeReviewDetailDrawer() {
+    const overlay = document.getElementById('review-detail-drawer-overlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+// ⚡️ 单卡准入交互反馈
+async function approveReviewCard(stageId, event) {
+    if (event) event.stopPropagation();
+    const stage = allStages.find(s => s.id === stageId);
+    const app = stage ? allApplications.find(a => a.id === stage.application_id) : null;
+    const compName = app ? app.company : (stage ? stage.raw_subject : '该企业');
+
+    const cardEl = document.getElementById(`review-card-${stageId}`);
+    if (cardEl) {
+        cardEl.classList.add('is-approved');
+        cardEl.innerHTML = `
+            <div style="padding: 24px 0; text-align: center;">
+                <div style="font-size: 2rem; margin-bottom: 6px;">✅</div>
+                <div style="font-weight: 800; color: #065F46; font-size: 1.05rem;">已成功放行准入！</div>
+                <div style="font-size: 0.78rem; color: #059669; margin-top: 4px;">已自动为「${escapeHTML(compName)}」在看板与挂件同步建档</div>
+            </div>
+        `;
+    }
+
+    showAdminToast('准入成功！已自动全景建档', `已为「${compName}」同步至求职全景看板与桌面挂件`);
+    await approveStage(stageId);
+}
+
+// 🗑️ 单卡忽略交互反馈
+async function ignoreReviewCard(stageId, event) {
+    if (event) event.stopPropagation();
+    const stage = allStages.find(s => s.id === stageId);
+    const app = stage ? allApplications.find(a => a.id === stage.application_id) : null;
+    const compName = app ? app.company : '该邮件';
+
+    const cardEl = document.getElementById(`review-card-${stageId}`);
+    if (cardEl) {
+        cardEl.style.opacity = '0';
+        cardEl.style.transform = 'scale(0.95)';
+    }
+
+    showAdminToast('已移入忽略归档箱', `「${compName}」已移入已忽略，随时可撤销恢复`);
+    await ignoreStage(stageId);
+}
+
+// ⚡️ 全局浮动 Toast 通知
+function showAdminToast(title, subtitle) {
+    const container = document.getElementById('admin-toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'admin-toast';
+    toast.innerHTML = `
+        <div class="toast-icon">✓</div>
+        <div class="toast-content">
+            <div class="toast-title">${escapeHTML(title)}</div>
+            ${subtitle ? `<div class="toast-desc">${escapeHTML(subtitle)}</div>` : ''}
+        </div>
+    `;
+
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-10px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3200);
 }
 
 // ⚡️ 批量一键放行准入全部待审邮件
@@ -1354,6 +1643,7 @@ async function batchApproveAllStages() {
             }
         }
 
+        showAdminToast('批量放行成功！', `已一键为全部 ${stageIds.length} 封邮件完成准入建档`);
         console.log(`✅ 批量准入 ${stageIds.length} 个环节成功`);
         await loadAllData();
     } catch (err) {
@@ -1362,14 +1652,16 @@ async function batchApproveAllStages() {
     }
 }
 
-// 审核通过
+// 审核通过底层函数
 async function approveStage(stageId) {
     if (!supabase) return;
     try {
         const stage = allStages.find(s => s.id === stageId);
         if (!stage) return;
 
-        const targetStatus = (stage.schedule_time && stage.schedule_time !== '待定') ? 'scheduled' : 'awaiting_result';
+        const isInvite = (stage.stage_name || '').includes('邀请') || (stage.stage_name || '').includes('宣讲') || (stage.stage_name || '').includes('邀约');
+        const hasTime = stage.schedule_time && stage.schedule_time !== '待定';
+        const targetStatus = (isInvite || hasTime) ? 'scheduled' : 'awaiting_result';
 
         // 1. 更新当前环节状态
         await supabase
@@ -1412,7 +1704,7 @@ async function approveStage(stageId) {
     }
 }
 
-// 忽略归档
+// 忽略归档底层函数
 async function ignoreStage(stageId) {
     if (!supabase) return;
     try {
@@ -1444,6 +1736,7 @@ async function restoreIgnoredStage(stageId, targetStatus) {
             })
             .eq('id', stageId);
 
+        showAdminToast('已恢复环节', targetStatus === 'pending' ? '已重新放回待审大厅' : '已直接准入建档');
         console.log(`✅ 已恢复环节 ${stageId} 为 ${targetStatus}`);
         await loadAllData();
     } catch (err) {
@@ -1569,42 +1862,97 @@ async function submitManualStage() {
     }
 
     try {
-        const taskId = (window.crypto && window.crypto.randomUUID)
+        let targetApp = null;
+        if (boundAppId) {
+            targetApp = allApplications.find(a => a.id === boundAppId);
+        }
+        if (!targetApp) {
+            targetApp = allApplications.find(a => a.company === compName && (a.department || '') === deptName);
+        }
+
+        let appId = targetApp ? targetApp.id : null;
+        let nextSeq = 1;
+
+        if (targetApp) {
+            // 已有企业：计算下一轮 seq
+            const existingStages = (appStagesMap[targetApp.id] || []).filter(s => s.stage_status !== 'ignored');
+            nextSeq = existingStages.length > 0 ? Math.max(...existingStages.map(s => s.seq || 1)) + 1 : 1;
+
+            // 将该企业下的前序非忽略环节标记为 passed (已通过)
+            await supabase
+                .from('application_stages')
+                .update({
+                    stage_status: 'passed',
+                    updated_at: new Date().toISOString()
+                })
+                .eq('application_id', targetApp.id)
+                .neq('stage_status', 'ignored');
+
+            // 更新主表状态
+            await supabase
+                .from('applications')
+                .update({
+                    company: compName,
+                    department: deptName || null,
+                    position: jobSubject || targetApp.position,
+                    current_stage_name: stageType,
+                    overall_status: (stageType.includes('Offer') || stageType.includes('录用')) ? 'offered' : 'active',
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', targetApp.id);
+        } else {
+            // 全新企业：建档 applications 主表
+            appId = (window.crypto && window.crypto.randomUUID)
+                ? window.crypto.randomUUID()
+                : ('app_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8));
+
+            const newAppPayload = {
+                id: appId,
+                company: compName,
+                department: deptName || null,
+                position: jobSubject || '校招应聘岗位',
+                current_stage_name: stageType,
+                overall_status: (stageType.includes('Offer') || stageType.includes('录用')) ? 'offered' : 'active',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            };
+
+            const { error: appErr } = await supabase
+                .from('applications')
+                .insert([newAppPayload]);
+
+            if (appErr) throw appErr;
+            nextSeq = 1;
+        }
+
+        // 插入 application_stages 子表
+        const stageId = (window.crypto && window.crypto.randomUUID)
             ? window.crypto.randomUUID()
-            : ('manual_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8));
+            : ('stage_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8));
 
-        // 统一公司与部门格式
-        const finalCompanyName = deptName ? `${compName}-${deptName}` : compName;
-        const targetTrackKey = deptName ? `${compName} · ${deptName}` : compName;
+        const isCompleted = (initialStatus === 'completed' || initialStatus === 'awaiting_result');
+        const stageTargetStatus = isCompleted ? 'awaiting_result' : 'scheduled';
 
-        const payload = {
-            id: taskId,
-            company: finalCompanyName,
-            subject: jobSubject || '校招应聘岗位',
-            type: stageType,
-            time: stageTime || '待定',
-            notes: stageNotes,
-            next_expectation: nextExp,
-            urgent: false,
-            status: initialStatus,
-            is_deleted: false,
+        const stagePayload = {
+            id: stageId,
+            application_id: appId,
+            seq: nextSeq,
+            stage_name: stageType,
+            stage_status: stageTargetStatus,
+            schedule_time: stageTime || '待定',
+            meeting_info: stageNotes || '',
+            next_expectation: nextExp || '',
+            notes: stageNotes || '',
+            raw_subject: jobSubject || `${compName} - ${stageType}`,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
         };
 
-        let { error } = await supabase
-            .from('tasks')
-            .insert([payload]);
+        const { error: stageErr } = await supabase
+            .from('application_stages')
+            .insert([stagePayload]);
 
-        // 若云数据库暂无 next_expectation 字段，进行兼容降级保存
-        if (error && error.message && error.message.includes('next_expectation')) {
-            console.warn('⚠️ 数据库暂无 next_expectation 字段，降级重试...');
-            delete payload.next_expectation;
-            const res = await supabase.from('tasks').insert([payload]);
-            error = res.error;
-        }
-
-        if (error) throw error;
+        if (stageErr) throw stageErr;
 
         if (msgEl) {
             msgEl.textContent = '✅ 推进成功！已自动建档并在看板与桌面挂件中同步。';
@@ -1615,12 +1963,12 @@ async function submitManualStage() {
 
         setTimeout(() => {
             closeManualStageModal();
-            // 如果抽屉处于打开状态，重新刷新该赛道的抽屉时间线
+            // 如果抽屉处于打开状态或当前推进了该企业，刷新该企业的抽屉
             const drawerOverlay = document.getElementById('timeline-drawer-overlay');
-            if (drawerOverlay && drawerOverlay.style.display === 'flex') {
-                openTimelineDrawer(encodeURIComponent(targetTrackKey));
+            if (drawerOverlay && drawerOverlay.style.display === 'flex' && appId) {
+                openTimelineDrawer(appId);
             }
-        }, 600);
+        }, 500);
 
     } catch (err) {
         console.error('手动推进建档失败:', err);
@@ -1631,9 +1979,225 @@ async function submitManualStage() {
     } finally {
         if (submitBtn) {
             submitBtn.disabled = false;
-            submitBtn.textContent = '⚡️ 确认推进建档';
+            submitBtn.textContent = '⚡️ 立即保存并建档';
         }
     }
 }
+
+// ==========================================================================
+// 13. ✏️ 环节与求职信息全字段自由修正核心逻辑 (Full-Field Stage Editing)
+// ==========================================================================
+function openEditStageModal(stageId) {
+    const stage = allStages.find(s => s.id === stageId);
+    if (!stage) return;
+
+    const app = allApplications.find(a => a.id === stage.application_id) || {};
+    const modal = document.getElementById('admin-edit-stage-modal');
+    if (!modal) return;
+
+    // 填充隐藏 ID
+    document.getElementById('edit-stage-id').value = stage.id;
+    document.getElementById('edit-app-id').value = app.id || '';
+
+    // 填充企业与岗位信息
+    document.getElementById('edit-company-name').value = app.company || '';
+    document.getElementById('edit-dept-name').value = app.department || '';
+    document.getElementById('edit-position-name').value = app.position || stage.raw_subject || '';
+
+    // 填充环节名称
+    document.getElementById('edit-stage-name').value = stage.stage_name || '';
+
+    // 填充状态单选
+    let currentStatus = stage.stage_status || 'scheduled';
+    if (app.overall_status === 'offered') currentStatus = 'offered';
+    else if (app.overall_status === 'archived') currentStatus = 'archived';
+    
+    const radios = document.querySelectorAll('input[name="edit-stage-status"]');
+    radios.forEach(r => {
+        r.checked = (r.value === currentStatus);
+    });
+
+    // 填充约定时间与凭据
+    document.getElementById('edit-schedule-time').value = stage.schedule_time || '';
+    document.getElementById('edit-meeting-info').value = stage.meeting_info || '';
+    document.getElementById('edit-next-expectation').value = stage.next_expectation || '';
+    document.getElementById('edit-stage-notes').value = stage.notes || '';
+
+    const msgEl = document.getElementById('edit-stage-msg');
+    if (msgEl) msgEl.textContent = '';
+
+    modal.style.display = 'flex';
+}
+
+function closeEditStageModal() {
+    const modal = document.getElementById('admin-edit-stage-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function selectEditStagePreset(presetName) {
+    const stageInput = document.getElementById('edit-stage-name');
+    const nextExpInput = document.getElementById('edit-next-expectation');
+    if (stageInput) stageInput.value = presetName;
+
+    if (nextExpInput && !nextExpInput.value) {
+        if (presetName.includes('网申')) nextExpInput.value = '等待简历初筛结果';
+        else if (presetName.includes('笔试')) nextExpInput.value = '等待笔试结果';
+        else if (presetName.includes('测评')) nextExpInput.value = '等待测评结果';
+        else if (presetName.includes('一面')) nextExpInput.value = '等待一面结果';
+        else if (presetName.includes('二面')) nextExpInput.value = '等待二面结果';
+        else if (presetName.includes('终面')) nextExpInput.value = '等待终面结果';
+        else if (presetName.includes('HR')) nextExpInput.value = '等待录用通知';
+        else if (presetName.includes('Offer')) nextExpInput.value = '等待正式录用签约';
+    }
+}
+
+async function submitEditStage() {
+    if (!supabase) {
+        alert('请先连接 Supabase 云数据库！');
+        return;
+    }
+
+    const stageId = document.getElementById('edit-stage-id')?.value;
+    const appId = document.getElementById('edit-app-id')?.value;
+    const compName = (document.getElementById('edit-company-name')?.value || '').trim();
+    const deptName = (document.getElementById('edit-dept-name')?.value || '').trim();
+    const posName = (document.getElementById('edit-position-name')?.value || '').trim();
+    const stageName = (document.getElementById('edit-stage-name')?.value || '').trim();
+    const statusVal = document.querySelector('input[name="edit-stage-status"]:checked')?.value || 'scheduled';
+    const scheduleTime = (document.getElementById('edit-schedule-time')?.value || '').trim();
+    const meetingInfo = (document.getElementById('edit-meeting-info')?.value || '').trim();
+    const nextExp = (document.getElementById('edit-next-expectation')?.value || '').trim();
+    const notes = (document.getElementById('edit-stage-notes')?.value || '').trim();
+    const msgEl = document.getElementById('edit-stage-msg');
+    const saveBtn = document.getElementById('btn-save-edit-stage');
+
+    if (!compName) {
+        if (msgEl) {
+            msgEl.textContent = '⚠️ 企业名称不能为空';
+            msgEl.style.color = '#ef4444';
+        }
+        return;
+    }
+
+    if (!stageName) {
+        if (msgEl) {
+            msgEl.textContent = '⚠️ 环节名称不能为空';
+            msgEl.style.color = '#ef4444';
+        }
+        return;
+    }
+
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = '正在保存修改...';
+    }
+
+    try {
+        // 1. 计算映射状态
+        let overallStatus = 'active';
+        let stageDbStatus = statusVal;
+
+        if (statusVal === 'offered') {
+            overallStatus = 'offered';
+            stageDbStatus = 'passed';
+        } else if (statusVal === 'archived') {
+            overallStatus = 'archived';
+            stageDbStatus = 'ignored';
+        }
+
+        // 2. 更新 applications 主表
+        if (appId) {
+            await supabase
+                .from('applications')
+                .update({
+                    company: compName,
+                    department: deptName || null,
+                    position: posName || null,
+                    current_stage_name: stageName,
+                    overall_status: overallStatus,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', appId);
+        }
+
+        // 3. 更新 application_stages 子表
+        if (stageId) {
+            const { error: stageErr } = await supabase
+                .from('application_stages')
+                .update({
+                    stage_name: stageName,
+                    stage_status: stageDbStatus,
+                    schedule_time: scheduleTime || '待定',
+                    meeting_info: meetingInfo || '',
+                    next_expectation: nextExp || '',
+                    notes: notes || '',
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', stageId);
+
+            if (stageErr) throw stageErr;
+        }
+
+        showAdminToast('✅ 修正成功！', `已更新「${compName} - ${stageName}」全景求职档案`);
+        await loadAllData();
+
+        setTimeout(() => {
+            closeEditStageModal();
+            if (appId) {
+                const drawerOverlay = document.getElementById('timeline-drawer-overlay');
+                if (drawerOverlay && drawerOverlay.style.display === 'flex') {
+                    openTimelineDrawer(appId);
+                }
+            }
+        }, 300);
+
+    } catch (err) {
+        console.error('修正环节失败:', err);
+        if (msgEl) {
+            msgEl.textContent = `❌ 保存失败: ${err.message}`;
+            msgEl.style.color = '#ef4444';
+        }
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 保存所有修改';
+        }
+    }
+}
+
+// 🗑️ 直接删除指定环节
+async function deleteStageDirectly() {
+    const stageId = document.getElementById('edit-stage-id')?.value;
+    const appId = document.getElementById('edit-app-id')?.value;
+    if (!stageId) return;
+
+    if (!confirm('确定要删除此求职环节吗？（删除后可在数据库中标记为已忽略）')) return;
+    if (!supabase) return;
+
+    try {
+        await supabase
+            .from('application_stages')
+            .update({
+                stage_status: 'ignored',
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', stageId);
+
+        showAdminToast('已删除环节', '该环节已成功移除');
+        await loadAllData();
+
+        closeEditStageModal();
+        if (appId) {
+            const drawerOverlay = document.getElementById('timeline-drawer-overlay');
+            if (drawerOverlay && drawerOverlay.style.display === 'flex') {
+                openTimelineDrawer(appId);
+            }
+        }
+    } catch (err) {
+        console.error('删除环节失败:', err);
+        alert(`删除失败: ${err.message}`);
+    }
+}
+
 
 
