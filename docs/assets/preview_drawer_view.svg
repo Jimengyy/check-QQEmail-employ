@@ -1,0 +1,259 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" width="1440" height="900">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap');
+      * { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+      .text-title { font-size: 20px; font-weight: 800; fill: #1E293B; }
+      .text-subtitle { font-size: 13px; font-weight: 500; fill: #64748B; }
+      .text-nav { font-size: 14px; font-weight: 600; fill: #475569; }
+      .text-nav-active { font-size: 14px; font-weight: 700; fill: #0F172A; }
+      .text-card-num { font-size: 26px; font-weight: 800; fill: #0F172A; }
+      .text-card-label { font-size: 12px; font-weight: 600; fill: #64748B; }
+    </style>
+    
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#000000" flood-opacity="0.04"/>
+    </filter>
+    <filter id="drawerShadow" x="-20%" y="-10%" width="140%" height="120%">
+      <feDropShadow dx="-10" dy="0" stdDeviation="24" flood-color="#000000" flood-opacity="0.12"/>
+    </filter>
+    <filter id="emeraldGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="10" flood-color="#10B981" flood-opacity="0.25"/>
+    </filter>
+
+    <linearGradient id="emeraldBtn" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="activeMilestoneBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#F0FDF4"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 1. Background Canvas -->
+  <rect width="1440" height="900" fill="#FDFCF8"/>
+
+  <!-- ==================== LEFT SIDEBAR (260px) ==================== -->
+  <g id="sidebar">
+    <rect x="0" y="0" width="260" height="900" fill="#F5F3ED" stroke="#EAE6DF" stroke-width="1"/>
+
+    <!-- Traffic Lights -->
+    <circle cx="28" cy="28" r="6" fill="#FF5F56"/>
+    <circle cx="48" cy="28" r="6" fill="#FFBD2E"/>
+    <circle cx="68" cy="28" r="6" fill="#27C93F"/>
+
+    <!-- Search Bar -->
+    <rect x="20" y="58" width="220" height="34" rx="8" fill="#EAE6DE" stroke="#DFDBD2" stroke-width="1"/>
+    <text x="32" y="80" font-size="13" fill="#94A3B8">🔍 搜索企业、岗位...</text>
+
+    <!-- Nav Items -->
+    <!-- Nav 1: Dashboard (Active) -->
+    <rect x="14" y="110" width="232" height="40" rx="8" fill="#FFFFFF" filter="url(#softShadow)"/>
+    <rect x="14" y="118" width="4" height="24" rx="2" fill="#10B981"/>
+    <text x="32" y="135" class="text-nav-active">✦ 求职全景看板</text>
+
+    <!-- Nav 2: Review Inbox -->
+    <text x="32" y="180" class="text-nav">📬 邮件待审准入</text>
+    <rect x="195" y="166" width="34" height="20" rx="10" fill="#EF4444"/>
+    <text x="205" y="180" font-size="11" font-weight="700" fill="#FFFFFF">14</text>
+
+    <!-- Nav 3: Archive -->
+    <text x="32" y="222" class="text-nav">📦 已忽略归档</text>
+    <text x="210" y="222" font-size="12" font-weight="600" fill="#94A3B8">2</text>
+
+    <!-- Nav 4: Settings -->
+    <text x="32" y="264" class="text-nav">⚙️ 云端数据库配置</text>
+
+    <!-- Divider -->
+    <line x1="20" y1="295" x2="240" y2="295" stroke="#E2DED5" stroke-width="1"/>
+
+    <!-- Segmented Switcher -->
+    <rect x="20" y="315" width="220" height="34" rx="17" fill="#E8E4DB"/>
+    <rect x="23" y="318" width="105" height="28" rx="14" fill="#FFFFFF" filter="url(#softShadow)"/>
+    <text x="44" y="337" font-size="12" font-weight="700" fill="#0F172A">☑️ 投递单</text>
+    <text x="146" y="337" font-size="12" font-weight="600" fill="#64748B">💬 动态</text>
+
+    <!-- Active Company List in Sidebar -->
+    <g transform="translate(20, 370)">
+      <!-- Item 1: Xiaohongshu (Active/Selected) -->
+      <rect x="0" y="0" width="220" height="42" rx="8" fill="#E8E4DA"/>
+      <rect x="8" y="7" width="28" height="28" rx="6" fill="#EF4444"/>
+      <text x="17" y="26" font-size="13" font-weight="700" fill="#FFF">小</text>
+      <text x="44" y="22" font-size="13" font-weight="700" fill="#0F172A">小红书</text>
+      <text x="44" y="34" font-size="11" fill="#64748B">产品工程师 · 二面</text>
+
+      <!-- Item 2: Netease -->
+      <rect x="8" y="55" width="28" height="28" rx="6" fill="#0284C7"/>
+      <text x="17" y="74" font-size="13" font-weight="700" fill="#FFF">网</text>
+      <text x="44" y="70" font-size="13" font-weight="600" fill="#334155">网易互娱</text>
+      <text x="44" y="82" font-size="11" fill="#64748B">2027校招 · 测评</text>
+
+      <!-- Item 3: Zhongkexin -->
+      <rect x="8" y="103" width="28" height="28" rx="6" fill="#059669"/>
+      <text x="17" y="122" font-size="13" font-weight="700" fill="#FFF">中</text>
+      <text x="44" y="118" font-size="13" font-weight="600" fill="#334155">中科芯</text>
+      <text x="44" y="130" font-size="11" fill="#64748B">校招宣讲 · 等待</text>
+    </g>
+
+    <!-- Bottom Profile / Realtime Status -->
+    <g transform="translate(20, 825)">
+      <rect x="0" y="0" width="220" height="52" rx="10" fill="#EAE6DE"/>
+      <circle cx="26" cy="26" r="16" fill="#6366F1"/>
+      <text x="20" y="31" font-size="14" font-weight="700" fill="#FFF">OP</text>
+      <text x="50" y="21" font-size="13" font-weight="700" fill="#0F172A">OfferPilot Pro</text>
+      <circle cx="54" cy="35" r="4" fill="#10B981"/>
+      <text x="64" y="39" font-size="11" font-weight="600" fill="#059669">Supabase 已连接</text>
+    </g>
+  </g>
+
+  <!-- ==================== MAIN DASHBOARD AREA ==================== -->
+  <g transform="translate(290, 0)">
+    <!-- Top Header -->
+    <text x="0" y="48" class="text-title">✦ OfferPilot · 求职全景中枢</text>
+    <text x="0" y="70" class="text-subtitle">多端实时同步 · ATS 主子表架构 · 智能时序状态机</text>
+
+    <!-- KPI Bento Cards -->
+    <g transform="translate(0, 95)">
+      <!-- KPI 1 -->
+      <rect x="0" y="0" width="130" height="84" rx="12" fill="#FFFFFF" stroke="#EAE6DF" filter="url(#softShadow)"/>
+      <text x="16" y="26" class="text-card-label">🏢 投递公司总数</text>
+      <text x="16" y="62" class="text-card-num">18</text>
+
+      <!-- KPI 2 -->
+      <rect x="145" y="0" width="130" height="84" rx="12" fill="#FFFFFF" stroke="#EAE6DF" filter="url(#softShadow)"/>
+      <text x="161" y="26" class="text-card-label">⏳ 推进中环节</text>
+      <text x="161" y="62" class="text-card-num" fill="#4F46E5">9</text>
+
+      <!-- KPI 3 -->
+      <rect x="290" y="0" width="130" height="84" rx="12" fill="#FFFFFF" stroke="#EAE6DF" filter="url(#softShadow)"/>
+      <text x="306" y="26" class="text-card-label">🎯 完结等待结果</text>
+      <text x="306" y="62" class="text-card-num" fill="#D97706">4</text>
+
+      <!-- KPI 4 -->
+      <rect x="435" y="0" width="130" height="84" rx="12" fill="#FFFFFF" stroke="#EAE6DF" filter="url(#softShadow)"/>
+      <text x="451" y="26" class="text-card-label">🏆 已获录用</text>
+      <text x="451" y="62" class="text-card-num" fill="#059669">2</text>
+    </g>
+
+    <!-- Table Background Rows (Blurred under drawer) -->
+    <g transform="translate(0, 205)" opacity="0.6">
+      <rect x="0" y="0" width="565" height="600" rx="14" fill="#FFFFFF" stroke="#EAE6DF"/>
+      <!-- Row 1 -->
+      <rect x="15" y="15" width="535" height="64" rx="8" fill="#F8FAFC"/>
+      <text x="30" y="42" font-size="14" font-weight="700" fill="#0F172A">小红书 (多媒体技术)</text>
+      <text x="30" y="60" font-size="12" fill="#64748B">Product Engineer · 二面</text>
+      <!-- Row 2 -->
+      <rect x="15" y="90" width="535" height="64" rx="8" fill="#F8FAFC"/>
+      <text x="30" y="117" font-size="14" font-weight="700" fill="#0F172A">网易游戏互娱</text>
+      <text x="30" y="135" font-size="12" fill="#64748B">校招投递邀请 · 测评中</text>
+    </g>
+  </g>
+
+  <!-- ==================== RIGHT SLIDE-OVER DRAWER (560px) ==================== -->
+  <g id="slideOverDrawer" transform="translate(880, 0)" filter="url(#drawerShadow)">
+    <rect x="0" y="0" width="560" height="900" fill="#FFFFFF" stroke="#EAE6DF" stroke-width="1"/>
+
+    <!-- Drawer Header -->
+    <g transform="translate(32, 32)">
+      <rect x="0" y="0" width="48" height="48" rx="10" fill="#EF4444"/>
+      <text x="13" y="32" font-size="22" font-weight="800" fill="#FFFFFF">小</text>
+
+      <text x="64" y="24" font-size="20" font-weight="800" fill="#0F172A">小红书</text>
+      <rect x="140" y="8" width="68" height="20" rx="4" fill="#EEF2FF"/>
+      <text x="148" y="22" font-size="11" font-weight="700" fill="#4F46E5">多媒体技术</text>
+
+      <text x="64" y="44" font-size="13" font-weight="500" fill="#64748B">投递岗位: Product Engineer · 共 3 轮应聘进展</text>
+
+      <!-- Action Buttons in Header -->
+      <rect x="360" y="8" width="98" height="32" rx="16" fill="#EEF2FF" stroke="#C7D2FE"/>
+      <text x="372" y="29" font-size="12" font-weight="700" fill="#4F46E5">➕ 推进新环节</text>
+
+      <circle cx="485" cy="24" r="14" fill="#F1F5F9"/>
+      <text x="480" y="29" font-size="14" font-weight="700" fill="#64748B">✕</text>
+    </g>
+
+    <line x1="32" y1="100" x2="528" y2="100" stroke="#F1F5F9" stroke-width="1.5"/>
+
+    <!-- Timeline Content Stream -->
+    <g transform="translate(32, 120)">
+      <text x="0" y="18" font-size="15" font-weight="800" fill="#0F172A">🗓️ 全周期求职时间轴 (时序倒序流)</text>
+
+      <!-- Vertical Timeline Track Line -->
+      <line x1="16" y1="50" x2="16" y2="680" stroke="#E2E8F0" stroke-width="2" stroke-dasharray="4,4"/>
+
+      <!-- ================= MILESTONE 1: TOP PINNED LATEST (技术二面) ================= -->
+      <g transform="translate(0, 45)">
+        <!-- Pinned Glow Node Marker -->
+        <circle cx="16" cy="24" r="14" fill="#10B981" filter="url(#emeraldGlow)"/>
+        <text x="10" y="29" font-size="14" fill="#FFF">📌</text>
+
+        <!-- Card Container -->
+        <rect x="42" y="0" width="454" height="230" rx="14" fill="url(#activeMilestoneBg)" stroke="#10B981" stroke-width="1.8" filter="url(#softShadow)"/>
+
+        <!-- Header of Card -->
+        <text x="62" y="32" font-size="16" font-weight="800" fill="#0F172A">第3轮 · 技术二面</text>
+        <rect x="180" y="16" width="68" height="22" rx="11" fill="#DCFCE7"/>
+        <text x="190" y="31" font-size="11" font-weight="700" fill="#16A34A">📌 最新进展</text>
+        <text x="400" y="32" font-size="12" font-weight="600" fill="#64748B">8/22 00:08</text>
+
+        <!-- Countdown Banner -->
+        <rect x="62" y="50" width="414" height="34" rx="8" fill="#ECFDF5" stroke="#A7F3D0" stroke-width="1"/>
+        <text x="76" y="72" font-size="13" font-weight="700" fill="#065F46">⏰ 约定时间: 2026-08-25 14:00 (距离开始还有 3天)</text>
+
+        <!-- Meeting Credentials Box -->
+        <rect x="62" y="94" width="414" height="42" rx="8" fill="#FFFBEB" stroke="#FDE68A" stroke-width="1"/>
+        <text x="76" y="120" font-size="13" font-weight="700" fill="#92400E">🔑 会议凭据: 腾讯会议 987-654-321 (密码: 8888)</text>
+        <rect x="408" y="102" width="56" height="26" rx="6" fill="#FDE68A"/>
+        <text x="420" y="119" font-size="11" font-weight="700" fill="#78350F">复制</text>
+
+        <!-- Notes -->
+        <text x="62" y="156" font-size="12" fill="#475569">📌 <strong>本轮预期:</strong> 重点考察分布式架构与实时流媒体系统设计</text>
+
+        <!-- State Machine Action Buttons -->
+        <g transform="translate(62, 175)">
+          <!-- Action 1: Advance to Awaiting Result -->
+          <rect x="0" y="0" width="130" height="36" rx="8" fill="url(#emeraldBtn)" filter="url(#softShadow)"/>
+          <text x="14" y="23" font-size="13" font-weight="700" fill="#FFFFFF">✓ 标为已参加</text>
+
+          <!-- Action 2: Reversible Rollback (seq - 1) -->
+          <rect x="145" y="0" width="175" height="36" rx="8" fill="#F1F5F9" stroke="#E2E8F0"/>
+          <text x="156" y="23" font-size="12" font-weight="600" fill="#64748B">↩ 撤销本轮 (回退至初面)</text>
+        </g>
+      </g>
+
+      <!-- ================= MILESTONE 2: HISTORICAL (技术一面) ================= -->
+      <g transform="translate(0, 305)">
+        <!-- Node Marker -->
+        <circle cx="16" cy="24" r="10" fill="#6366F1"/>
+        <text x="10" y="28" font-size="12" fill="#FFF">✓</text>
+
+        <!-- Card Container -->
+        <rect x="42" y="0" width="454" height="110" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+        <text x="62" y="32" font-size="15" font-weight="700" fill="#334155">第2轮 · 技术一面</text>
+        <rect x="180" y="16" width="96" height="22" rx="11" fill="#F1F5F9"/>
+        <text x="190" y="31" font-size="11" font-weight="600" fill="#64748B">✓ 历史环节 (已通过)</text>
+        <text x="400" y="32" font-size="12" fill="#94A3B8">8/20 15:30</text>
+
+        <text x="62" y="60" font-size="12" fill="#64748B">约定时间: 2026-08-20 15:30 · 腾讯会议面试已圆满完成</text>
+        <text x="62" y="82" font-size="12" fill="#059669">🎉 状态: 面试表现优秀，已顺利晋级下一轮二面</text>
+      </g>
+
+      <!-- ================= MILESTONE 3: HISTORICAL (网申提交) ================= -->
+      <g transform="translate(0, 440)">
+        <!-- Node Marker -->
+        <circle cx="16" cy="24" r="10" fill="#94A3B8"/>
+        <text x="10" y="28" font-size="12" fill="#FFF">✓</text>
+
+        <!-- Card Container -->
+        <rect x="42" y="0" width="454" height="90" rx="12" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+        <text x="62" y="32" font-size="15" font-weight="700" fill="#334155">第1轮 · 网申提交</text>
+        <rect x="180" y="16" width="80" height="22" rx="11" fill="#F1F5F9"/>
+        <text x="190" y="31" font-size="11" font-weight="600" fill="#64748B">网申已送达</text>
+        <text x="400" y="32" font-size="12" fill="#94A3B8">8/18 10:00</text>
+
+        <text x="62" y="62" font-size="12" fill="#64748B">简历已成功投递至官方校招系统，通过初筛并收到一面通知</text>
+      </g>
+    </g>
+  </g>
+</svg>

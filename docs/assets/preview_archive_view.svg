@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" width="1440" height="900">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap');
+      * { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+      .text-title { font-size: 20px; font-weight: 800; fill: #1E293B; }
+      .text-subtitle { font-size: 13px; font-weight: 500; fill: #64748B; }
+      .text-nav { font-size: 13.5px; font-weight: 600; fill: #475569; }
+      .text-nav-active { font-size: 13.5px; font-weight: 700; fill: #0F172A; }
+      .text-section-title { font-size: 11px; font-weight: 700; fill: #94A3B8; letter-spacing: 0.8px; text-transform: uppercase; }
+    </style>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="12" flood-color="#000000" flood-opacity="0.04"/>
+    </filter>
+    <linearGradient id="emeraldBtn" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 1. Background Canvas -->
+  <rect width="1440" height="900" fill="#FDFCF8"/>
+
+  <!-- ==================== LEFT SIDEBAR (240px) ==================== -->
+  <g id="sidebar">
+    <rect x="0" y="0" width="240" height="900" fill="#F6F4ED" stroke="#EBE7DE" stroke-width="1"/>
+
+    <!-- Brand -->
+    <g transform="translate(24, 28)">
+      <text x="0" y="20" font-size="18" font-weight="900" fill="#0F172A">✦ OfferPilot</text>
+      <rect x="110" y="5" width="42" height="18" rx="9" fill="#E2DDD2"/>
+      <text x="118" y="18" font-size="10" font-weight="800" fill="#64748B">ATS</text>
+    </g>
+
+    <!-- Quick Action -->
+    <g transform="translate(20, 68)">
+      <rect x="0" y="0" width="200" height="38" rx="19" fill="#1E293B"/>
+      <text x="46" y="24" font-size="13" font-weight="700" fill="#FFFFFF">➕ 手动建档 / 推进</text>
+    </g>
+
+    <!-- Navigation -->
+    <g transform="translate(20, 130)">
+      <text x="8" y="0" class="text-section-title">核心大厅</text>
+      <text x="16" y="36" class="text-nav">📊 求职全景看板</text>
+      <text x="16" y="80" class="text-nav">📬 邮件待审准入</text>
+      <rect x="156" y="65" width="32" height="20" rx="10" fill="#EF4444"/>
+      <text x="165" y="79" font-size="11" font-weight="800" fill="#FFFFFF">14</text>
+
+      <!-- Nav 3: Archive Box (Active State) -->
+      <g transform="translate(0, 100)">
+        <rect x="0" y="0" width="200" height="38" rx="10" fill="#FFFFFF" filter="url(#softShadow)"/>
+        <rect x="0" y="10" width="3.5" height="18" rx="1.75" fill="#64748B"/>
+        <text x="16" y="24" class="text-nav-active">📦 已忽略归档箱</text>
+        <text x="174" y="24" font-size="12" font-weight="700" fill="#0F172A">2</text>
+      </g>
+    </g>
+
+    <!-- Bottom -->
+    <g transform="translate(20, 825)">
+      <rect x="0" y="0" width="200" height="36" rx="8" fill="#E8E4DA"/>
+      <circle cx="20" cy="18" r="4" fill="#10B981"/>
+      <text x="32" y="22" font-size="11.5" font-weight="700" fill="#065F46">云端 Realtime 已连接</text>
+      <text x="175" y="22" font-size="13" fill="#64748B">⚙️</text>
+    </g>
+  </g>
+
+  <!-- ==================== ARCHIVE MAIN AREA ==================== -->
+  <g transform="translate(272, 0)">
+    <!-- Top Header -->
+    <g transform="translate(0, 28)">
+      <text x="0" y="24" class="text-title">📦 已忽略与归档回收大厅 (Archive Box)</text>
+      <text x="0" y="46" class="text-subtitle">被忽略的非本人招聘通知与淘汰归档记录存放在此，随时支持一键撤销并恢复</text>
+    </g>
+
+    <!-- Archive Table Container -->
+    <g transform="translate(0, 95)">
+      <rect x="0" y="0" width="1120" height="760" rx="16" fill="#FFFFFF" stroke="#EBE7DE" filter="url(#softShadow)"/>
+
+      <!-- Table Header -->
+      <g transform="translate(24, 20)">
+        <rect x="0" y="0" width="1072" height="38" rx="8" fill="#F8FAFC"/>
+        <text x="24" y="24" font-size="12" font-weight="700" fill="#64748B">抓取时间</text>
+        <text x="130" y="24" font-size="12" font-weight="700" fill="#64748B">目标企业 / 判定</text>
+        <text x="340" y="24" font-size="12" font-weight="700" fill="#64748B">提炼环节</text>
+        <text x="480" y="24" font-size="12" font-weight="700" fill="#64748B">邮件原始主题 / 忽略说明</text>
+        <text x="760" y="24" font-size="12" font-weight="700" fill="#64748B">约定时间</text>
+        <text x="940" y="24" font-size="12" font-weight="700" fill="#64748B">恢复与放行</text>
+      </g>
+
+      <!-- Row 1: 其他/未识别公司 -->
+      <g transform="translate(24, 70)">
+        <rect x="0" y="0" width="1072" height="68" rx="8" fill="#FFFFFF" stroke="#F1F5F9"/>
+        <text x="24" y="40" font-size="13" fill="#64748B">8/22 00:07</text>
+        
+        <rect x="130" y="16" width="32" height="32" rx="6" fill="#94A3B8"/>
+        <text x="140" y="37" font-size="14" font-weight="700" fill="#FFF">其</text>
+        <text x="170" y="32" font-size="14" font-weight="700" fill="#64748B">其他 / 未识别企业</text>
+        <text x="170" y="48" font-size="11" fill="#94A3B8">系统反诈识别</text>
+
+        <!-- Stage Badge -->
+        <rect x="340" y="22" width="76" height="24" rx="12" fill="#F1F5F9"/>
+        <text x="352" y="38" font-size="11" font-weight="700" fill="#64748B">⌛️ 反诈提醒</text>
+
+        <text x="480" y="40" font-size="12.5" fill="#64748B">警惕招聘欺诈！求职季必看的防骗防诈指南</text>
+        <text x="760" y="40" font-size="12" fill="#94A3B8">待定</text>
+
+        <!-- Action Buttons -->
+        <rect x="910" y="18" width="80" height="32" rx="16" fill="url(#emeraldBtn)"/>
+        <text x="922" y="38" font-size="11.5" font-weight="700" fill="#FFF">✓ 恢复准入</text>
+
+        <rect x="998" y="18" width="66" height="32" rx="16" fill="#F1F5F9" stroke="#CBD5E1"/>
+        <text x="1008" y="38" font-size="11.5" font-weight="600" fill="#475569">↩ 回待审</text>
+      </g>
+
+      <!-- Row 2: 某群发推广 -->
+      <g transform="translate(24, 146)">
+        <rect x="0" y="0" width="1072" height="68" rx="8" fill="#FFFFFF" stroke="#F1F5F9"/>
+        <text x="24" y="40" font-size="13" fill="#64748B">8/22 00:06</text>
+        
+        <rect x="130" y="16" width="32" height="32" rx="6" fill="#94A3B8"/>
+        <text x="140" y="37" font-size="14" font-weight="700" fill="#FFF">推</text>
+        <text x="170" y="32" font-size="14" font-weight="700" fill="#64748B">猎头机构推销</text>
+        <text x="170" y="48" font-size="11" fill="#94A3B8">非本人投递岗位</text>
+
+        <rect x="340" y="22" width="76" height="24" rx="12" fill="#F1F5F9"/>
+        <text x="352" y="38" font-size="11" font-weight="700" fill="#64748B">📬 推广邮件</text>
+
+        <text x="480" y="40" font-size="12.5" fill="#64748B">【高薪岗位推荐】为您精准匹配上海知名外企职位</text>
+        <text x="760" y="40" font-size="12" fill="#94A3B8">待定</text>
+
+        <rect x="910" y="18" width="80" height="32" rx="16" fill="url(#emeraldBtn)"/>
+        <text x="922" y="38" font-size="11.5" font-weight="700" fill="#FFF">✓ 恢复准入</text>
+
+        <rect x="998" y="18" width="66" height="32" rx="16" fill="#F1F5F9" stroke="#CBD5E1"/>
+        <text x="1008" y="38" font-size="11.5" font-weight="600" fill="#475569">↩ 回待审</text>
+      </g>
+    </g>
+  </g>
+</svg>
