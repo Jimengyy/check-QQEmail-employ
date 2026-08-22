@@ -8,7 +8,7 @@
 [![Python Version](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Database](https://img.shields.io/badge/Database-Supabase%20PostgreSQL-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com/)
 [![AI Engine](https://img.shields.io/badge/AI%20Engine-DeepSeek%20V3-4D6BFE?style=flat-square)](https://www.deepseek.com/)
-[![Platform](https://img.shields.io/badge/Platform-macOS%20%7C%20Web%20%7C%20Android-000000?style=flat-square&logo=android&logoColor=white)]()
+[![Platform](https://img.shields.io/badge/Platform-macOS%20Desktop%20%7C%20Web-000000?style=flat-square&logo=apple&logoColor=white)]()
 [![GitHub Actions](https://img.shields.io/badge/CI%2FCD-7x24h%20Cloud%20Sync-2088FF?style=flat-square&logo=github-actions&logoColor=white)](.github/workflows/sync.yml)
 
 <br/>
@@ -17,7 +17,7 @@
 
 <br/>
 
-[🌟 核心特性](#-核心特性) • [📐 系统架构全景](#-系统架构全景) • [📱 安卓端 APK 安装与使用](#-安卓手机端-apk-极速安装与使用) • [🛠️ 新手部署全攻略 (必读)](#-从零到一新手极速部署指南-fork-零代码模式) • [🎮 客户端交互使用指引](#-客户端日常交互使用指引) • [🔄 状态生命周期与回退](#-任务状态全生命周期流转) • [📂 工程目录结构](#-工程目录结构) • [🔒 安全隔离](#-开源安全与机密隔离)
+[🌟 核心特性](#-核心特性) • [📐 系统架构全景](#-系统架构全景) • [🛠️ 新手部署全攻略 (必读)](#-从零到一新手极速部署指南-fork-零代码模式) • [🎮 客户端交互使用指引](#-客户端日常交互使用指引) • [🔄 状态生命周期与回退](#-任务状态全生命周期流转) • [📂 工程目录结构](#-工程目录结构) • [🔒 安全隔离](#-开源安全与机密隔离)
 
 </div>
 
@@ -25,7 +25,7 @@
 
 ## 📖 项目简介
 
-**OfferPilot (求职全景智能助手 V3.3)** 专为求职季打造，自动化聚合分散在各大邮件中的笔试与面试通知，实现 **“云端 7x24h 静默抓取 + Mac 桌面透明挂件 + Web 全景大厅 + 安卓手机随行 APK”** 的无缝多端协同闭环。
+**OfferPilot (求职全景智能助手 V3.2)** 专为求职季打造，自动化聚合分散在各大邮件中的笔试与面试通知，实现 **“云端 7x24h 静默抓取 + Mac 桌面透明挂件 + Web 全景看板”** 的无缝协同闭环。
 
 ---
 
@@ -59,32 +59,6 @@
 ## 📐 系统架构全景
 
 ![OfferPilot 云原生架构全景流转图](docs/assets/recruitment-assistant-v3-flow.svg)
-
----
-
-## 📱 安卓手机端 APK 极速安装与使用
-
-OfferPilot V3.3 现已原生支持 Android 移动端！体积仅 **~3.5MB**，极速启动，随时随地随身掌握面试笔试动态。
-
-### 🌟 核心功能一览
-* 📱 **今日待办置顶**：倒计时大卡片、一键复制腾讯会议号、一键唤起会议 App、一键同步至系统日历提醒。
-* 📥 **待审大厅分诊**：卡片右滑放行、左滑忽略、AI 邮件全文溯源与自由修正。
-* 📊 **投递全景看板**：按招聘季/客观状态筛选、环节时序树抽屉、一键标记已参加与手误无损撤销。
-* ⚡️ **全端毫秒级同步**：与云端 Supabase 建立 WebSocket Realtime 双向监听，多端状态实时同频。
-
-### 🚀 获取与构建 APK 安装包
-
-#### 方式一：GitHub Actions 云端 1 键打包（免配环境，强烈推荐）
-1. 将项目代码推送到您的 GitHub 仓库；
-2. 打开 GitHub 仓库页面 ➡️ 点击上方 **【Actions】** 标签；
-3. 在左侧选择 **【📱 Build Android APK】** 工作流 ➡️ 点击右侧 **【Run workflow】**；
-4. 等待 1~2 分钟编译完成后，进入该次构建详情页，在 **Artifacts** 区域即可直接下载 `OfferPilot-v3.3.0.apk` 发送至安卓手机安装体验！
-
-#### 方式二：本地 Gradle 构建
-```bash
-# 执行一键构建脚本 (自动同步最新前端白瓷 UI 资产并编译)
-bash scripts/build_android_apk.sh
-```
 
 ---
 
@@ -268,28 +242,17 @@ OfferPilot 针对 macOS 系统深度调优，带来了极其自然与丝滑的�
 │       ├── app.js
 │       └── supabase.js
 │
-├── 📱 mobile/                    # 【安卓移动端工程】
-│   ├── src/                      # 移动端白瓷 SPA 源码 (今日待办、待审大厅、全景看板、配置中心)
-│   │   ├── index.html
-│   │   ├── style.css
-│   │   ├── app.js
-│   │   └── supabase.js
-│   ├── capacitor.config.json     # 跨端容器配置
-│   └── android/                  # Android 标准 Gradle 原生工程 (MainActivity.java, AndroidManifest.xml)
-│
 ├── 🛠️ scripts/                    # 【自动化与运维脚本】
 │   ├── toggle.sh                 # 桌面挂件一键启动 / 关闭脚本
 │   ├── start_web.sh              # 纯 Web 独立控制台启动脚本
-│   ├── build_mac_app.sh          # 独立 OfferPilot.app 构建打包脚本
-│   └── build_android_apk.sh      # 📱 移动端 APK 资源同步与一键编译脚本
+│   └── build_mac_app.sh          # 独立 OfferPilot.app 与 .dmg 安装镜像自动化构建打包脚本
 │
 ├── 📖 docs/                       # 【设计文档与设计切图】
 │   ├── architecture_plan.md      # 跨端云原生架构设计实施方案
 │   └── assets/                   # 高清产品演示图 (JPG)、矢量架构图 (SVG) 与 Apple AppIcon.icns
 │
 ├── .github/workflows/
-│   ├── sync.yml                  # ☁️ 7x24h 邮件抓取与 AI 解析工作流
-│   └── build-apk.yml             # 📱 GitHub Actions 云端一键自动化编译 APK 工作流
+│   └── sync.yml                  # ☁️ GitHub Actions 自动化定时工作流
 ├── ⚡️ 招聘助手开关.app             # 💻 macOS 桌面快捷双击开关程序
 ├── ⚙️ config.example.json         # 📄 公开配置样例模板
 ├── 📦 requirements.txt           # 📦 客户端极简 Python 依赖 (仅 pywebview, flask, pyobjc)
