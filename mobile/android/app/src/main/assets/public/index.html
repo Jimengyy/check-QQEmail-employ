@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#FAF8F5">
+    <title>OfferPilot</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- 1. 沉浸式极简顶栏 (Header) -->
+    <header class="app-header">
+        <div class="brand-section">
+            <span class="brand-title">OfferPilot</span>
+            <span class="season-pill" id="currentSeasonBadge">2027届秋招</span>
+        </div>
+        <div class="header-actions">
+            <div class="status-dot" id="realtimeDot" title="云端实时在线"></div>
+            <button class="header-icon-btn" id="btnAddApplication" title="新增投递">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- 2. 主视口内容区 (Tab Views) -->
+    <main class="view-container">
+
+        <!-- Tab 1: 📱 今日待办 (Agenda View) -->
+        <section id="tabAgenda" class="tab-view active">
+            <!-- 置顶 Hero Ticket 卡片 -->
+            <div id="heroAgendaContainer">
+                <div class="hero-ticket-card" id="heroAgendaCard" style="display: none;">
+                    <div class="ticket-header">
+                        <div class="countdown-pill" id="heroCountdownPill">
+                            <span id="heroCountdownText">距离还有 2 天</span>
+                        </div>
+                        <span class="triage-stage-badge" id="heroStageTag">技术二面</span>
+                    </div>
+                    
+                    <div class="ticket-main">
+                        <div class="company-squircle" id="heroAvatar" style="background: #4F46E5;">企</div>
+                        <div class="ticket-title">
+                            <h3 id="heroCompany">腾讯科技</h3>
+                            <p id="heroPosition">后端开发工程师</p>
+                        </div>
+                    </div>
+
+                    <div class="ticket-details-box">
+                        <div class="ticket-details-row">
+                            <span>📅 时间</span>
+                            <strong id="heroTime">2026-08-25 14:30</strong>
+                        </div>
+                        <div class="ticket-details-row" id="heroMeetingRow">
+                            <span>💻 会议</span>
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <strong id="heroMeetingInfo">腾讯会议 982-342-110</strong>
+                                <button class="copy-mini-btn" id="btnHeroCopyMeeting">复制</button>
+                            </div>
+                        </div>
+                        <div class="ticket-details-row" id="heroNextExpRow" style="font-size: 11px; color: var(--text-tertiary);">
+                            <span>🎯 预期</span>
+                            <span id="heroNextExp">提前5分钟入会</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-actions-bar">
+                        <button class="btn-ticket-primary" id="btnHeroOpenMeeting">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M15 3h6v6"></path>
+                                <path d="M10 14L21 3"></path>
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                            </svg>
+                            <span>调起会议</span>
+                        </button>
+                        <button class="btn-ticket-secondary" id="btnHeroMarkAttended">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            <span>标为已参加</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 空状态 -->
+            <div class="empty-box" id="agendaEmptyBox" style="display: none;">
+                <div class="empty-icon">☕️</div>
+                <div class="empty-title">当前暂无待办事项</div>
+                <div class="empty-subtitle">云端机器人正在静默为您监控新邮件通知</div>
+            </div>
+
+            <!-- 近期日程列表 -->
+            <div id="upcomingSection">
+                <div class="section-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span>近期求职日程</span>
+                </div>
+                <div id="upcomingAgendaList">
+                    <!-- 动态渲染 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Tab 2: 📥 待审大厅 (Triage View) -->
+        <section id="tabTriage" class="tab-view">
+            <div class="triage-top-bar">
+                <div class="segmented-control">
+                    <button class="segment-btn active" id="subtabPending" onclick="switchTriageSubtab('pending')">待审 (<span id="countPending">0</span>)</button>
+                    <button class="segment-btn" id="subtabIgnored" onclick="switchTriageSubtab('ignored')">已忽略 (<span id="countIgnored">0</span>)</button>
+                </div>
+                <button class="btn-batch-approve" id="btnBatchApprove">⚡️ 一键放行</button>
+            </div>
+
+            <div id="triageCardsStream">
+                <!-- 动态渲染待审卡片 -->
+            </div>
+
+            <div class="empty-box" id="triageEmptyBox" style="display: none;">
+                <div class="empty-icon">✨</div>
+                <div class="empty-title">待审大厅已全部分诊完毕</div>
+                <div class="empty-subtitle">所有 AI 提取的求职环节均已归档或放行入库</div>
+            </div>
+        </section>
+
+        <!-- Tab 3: 📊 投递看板 (Pipeline View) -->
+        <section id="tabPipeline" class="tab-view">
+            <!-- 极简搜索条 -->
+            <div class="search-bar-sleek">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-tertiary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" class="search-input" id="pipelineSearchInput" placeholder="搜索公司、部门、岗位或环节...">
+            </div>
+
+            <!-- 状态过滤胶囊 (按求职进度全景 9 大分类) -->
+            <div class="pipeline-filter-chips">
+                <div class="chip-item active" data-filter="all">全部 (<span id="filterAllCount">0</span>)</div>
+                <div class="chip-item" data-filter="active">推进中 (<span id="filterActiveCount">0</span>)</div>
+                <div class="chip-item" data-filter="applied">已投递 (<span id="filterAppliedCount">0</span>)</div>
+                <div class="chip-item" data-filter="assessment">已测评 (<span id="filterAssessmentCount">0</span>)</div>
+                <div class="chip-item" data-filter="exam">已笔试 (<span id="filterExamCount">0</span>)</div>
+                <div class="chip-item" data-filter="interview">已面试 (<span id="filterInterviewCount">0</span>)</div>
+                <div class="chip-item" data-filter="offered">已录用 (<span id="filterOfferedCount">0</span>)</div>
+                <div class="chip-item" data-filter="failed">已结束 (<span id="filterFailedCount">0</span>)</div>
+                <div class="chip-item" data-filter="archived">已归档 (<span id="filterArchivedCount">0</span>)</div>
+            </div>
+
+            <!-- 2 列 Apple 瓷感微型小组件矩阵流 (2-Column Apple Widget Grid) -->
+            <div id="pipelineCardsList" class="apple-widget-grid">
+                <!-- 动态渲染图1风格的微型模块小组件 -->
+            </div>
+
+            <div class="empty-box" id="pipelineEmptyBox" style="display: none;">
+                <div class="empty-icon">🗂️</div>
+                <div class="empty-title">未找到匹配的投递记录</div>
+                <div class="empty-subtitle">点击右上角「＋」手动录入或等待云端提取</div>
+            </div>
+        </section>
+
+        <!-- Tab 4: ⚙️ 极简配置 (Settings View) -->
+        <section id="tabSettings" class="tab-view">
+            <div class="porcelain-card">
+                <div class="section-label" style="margin-top: 0;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+                    </svg>
+                    <span>Supabase 云数据库连接</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Project URL</label>
+                    <input type="text" class="form-input" id="cfgSupabaseUrl" placeholder="https://your-project.supabase.co">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Anon / Service Role Key</label>
+                    <input type="password" class="form-input" id="cfgSupabaseKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 12px;">
+                    <button class="btn-ticket-primary" id="btnSaveConfig" style="flex: 1;">💾 保存并连接</button>
+                    <button class="btn-ticket-secondary" id="btnTestConfig">🔍 测试</button>
+                </div>
+            </div>
+
+            <div class="porcelain-card">
+                <div class="section-label" style="margin-top: 0;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path>
+                    </svg>
+                    <span>偏好设置</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border-subtle);">
+                    <span style="font-size: 13px;">暗色模式 (Obsidian Dark)</span>
+                    <input type="checkbox" id="toggleDarkMode" style="width: 18px; height: 18px; accent-color: var(--emerald-primary);">
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0 2px 0;">
+                    <span style="font-size: 13px;">求职届别</span>
+                    <select class="form-select" id="selectSeason" style="width: 130px; padding: 4px 8px;">
+                        <option value="2027届秋招">2027届秋招</option>
+                        <option value="2026届春招">2026届春招</option>
+                        <option value="日常实习">日常实习</option>
+                        <option value="社招跳槽">社招跳槽</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="porcelain-card" style="text-align: center; color: var(--text-tertiary); font-size: 12px; padding: 14px;">
+                <strong style="color: var(--text-secondary);">OfferPilot V3.3.0</strong>
+                <p style="margin-top: 2px;">云原生 · 高颜值 · 多端实时求职全景智能助手</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 3. 底部极简 Dock 导航 (SVG 矢量图标) -->
+    <nav class="bottom-dock">
+        <div class="dock-item active" data-tab="tabAgenda">
+            <svg class="dock-icon" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span class="dock-label">待办</span>
+        </div>
+        <div class="dock-item" data-tab="tabTriage">
+            <svg class="dock-icon" viewBox="0 0 24 24">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+            <span class="dock-badge" id="dockTriageBadge">0</span>
+            <span class="dock-label">待审</span>
+        </div>
+        <div class="dock-item" data-tab="tabPipeline">
+            <svg class="dock-icon" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="7" height="9"></rect>
+                <rect x="14" y="3" width="7" height="5"></rect>
+                <rect x="14" y="12" width="7" height="9"></rect>
+                <rect x="3" y="16" width="7" height="5"></rect>
+            </svg>
+            <span class="dock-label">看板</span>
+        </div>
+        <div class="dock-item" data-tab="tabSettings">
+            <svg class="dock-icon" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+            <span class="dock-label">设置</span>
+        </div>
+    </nav>
+
+    <!-- 4. 环节时间线底部抽屉 (Timeline Drawer) -->
+    <div class="sheet-overlay" id="timelineSheetOverlay">
+        <div class="bottom-sheet">
+            <div class="sheet-grabber"></div>
+            <div class="sheet-header-clean">
+                <div>
+                    <h3 id="drawerCompany" style="font-size: 16px; font-weight: 700;">企业名称</h3>
+                    <p id="drawerPosition" style="font-size: 12px; color: var(--text-secondary); margin-top: 1px;">岗位明细</p>
+                </div>
+                <button class="header-icon-btn" id="btnCloseTimelineDrawer">✕</button>
+            </div>
+            <div class="sheet-body">
+                <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+                    <button class="btn-ticket-primary" id="btnDrawerAddStage" style="font-size: 12px; padding: 7px 12px; flex: 1;">＋ 新增环节</button>
+                    <button class="btn-ticket-secondary" id="btnDrawerToggleArchive" style="font-size: 12px; padding: 7px 12px;">📦 归档</button>
+                </div>
+                <div class="timeline-list" id="drawerTimelineList">
+                    <!-- 动态渲染 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. AI 原文溯源抽屉 -->
+    <div class="sheet-overlay" id="emailDetailSheetOverlay">
+        <div class="bottom-sheet">
+            <div class="sheet-grabber"></div>
+            <div class="sheet-header-clean">
+                <div>
+                    <h3 style="font-size: 15px; font-weight: 700;">🤖 AI 抓取原文溯源</h3>
+                    <p id="emailDetailSubject" style="font-size: 11px; color: var(--text-secondary); margin-top: 1px;">邮件主题</p>
+                </div>
+                <button class="header-icon-btn" id="btnCloseEmailDetailDrawer">✕</button>
+            </div>
+            <div class="sheet-body">
+                <div class="porcelain-card" style="margin-bottom: 10px; background: var(--bg-surface); font-size: 12px; line-height: 1.6;" id="emailDetailParsedMeta">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">邮件原始内容</label>
+                    <div id="emailDetailRawText" style="padding: 10px 12px; border-radius: var(--radius-md); background: var(--bg-surface); font-size: 12px; line-height: 1.6; max-height: 220px; overflow-y: auto; user-select: text; -webkit-user-select: text;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. 弹窗：编辑/自由修正环节 (Edit Stage Modal) -->
+    <div class="sheet-overlay" id="editStageSheetOverlay">
+        <div class="bottom-sheet">
+            <div class="sheet-grabber"></div>
+            <div class="sheet-header-clean">
+                <h3 style="font-size: 15px; font-weight: 700;">✏️ 修正求职环节</h3>
+                <button class="header-icon-btn" id="btnCloseEditStageModal">✕</button>
+            </div>
+            <div class="sheet-body">
+                <input type="hidden" id="editStageId">
+                <div class="form-group">
+                    <label class="form-label">环节名称</label>
+                    <input type="text" class="form-input" id="editStageName" placeholder="如：技术一面">
+                    <div class="preset-chip-list">
+                        <span class="preset-chip" onclick="setEditStageName('笔试')">笔试</span>
+                        <span class="preset-chip" onclick="setEditStageName('技术一面')">技术一面</span>
+                        <span class="preset-chip" onclick="setEditStageName('技术二面')">技术二面</span>
+                        <span class="preset-chip" onclick="setEditStageName('总监终面')">总监终面</span>
+                        <span class="preset-chip" onclick="setEditStageName('HR面')">HR面</span>
+                        <span class="preset-chip" onclick="setEditStageName('录用Offer')">录用Offer</span>
+                        <span class="preset-chip" onclick="setEditStageName('感谢信')">感谢信</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">环节状态</label>
+                    <select class="form-select" id="editStageStatus">
+                        <option value="scheduled">待办 (Scheduled)</option>
+                        <option value="awaiting_result">待结果 (Awaiting Result)</option>
+                        <option value="passed">通过 (Passed)</option>
+                        <option value="failed">未通过/结束 (Failed)</option>
+                        <option value="pending">待审 (Pending)</option>
+                        <option value="ignored">忽略 (Ignored)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">时间安排</label>
+                    <input type="text" class="form-input" id="editStageScheduleTime" placeholder="例如：2026-08-25 14:00 或 待定">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">会议号 / 链接</label>
+                    <input type="text" class="form-input" id="editStageMeetingInfo" placeholder="如：腾讯会议 123-456-789">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">下一步预期</label>
+                    <input type="text" class="form-input" id="editStageNextExp" placeholder="如：等待 3 个工作日出结果">
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-top: 16px;">
+                    <button class="btn-ticket-primary" id="btnSubmitEditStage" style="flex: 1;">✓ 保存修改</button>
+                    <button class="btn-ticket-secondary" id="btnDeleteStage" style="color: var(--coral-text); border-color: var(--coral-border);">🗑️ 删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. 弹窗：手动新增投递/环节 (Add Modal) -->
+    <div class="sheet-overlay" id="addModalSheetOverlay">
+        <div class="bottom-sheet">
+            <div class="sheet-grabber"></div>
+            <div class="sheet-header-clean">
+                <h3 style="font-size: 15px; font-weight: 700;">➕ 手动录入投递 / 环节</h3>
+                <button class="header-icon-btn" id="btnCloseAddModal">✕</button>
+            </div>
+            <div class="sheet-body">
+                <div class="form-group">
+                    <label class="form-label">企业名称 *</label>
+                    <input type="text" class="form-input" id="addCompany" placeholder="如：字节跳动、阿里巴巴">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">所属部门</label>
+                    <input type="text" class="form-input" id="addDepartment" placeholder="如：商业化、基础架构">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">投递岗位 *</label>
+                    <input type="text" class="form-input" id="addPosition" placeholder="如：后端开发工程师">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">初始环节</label>
+                    <input type="text" class="form-input" id="addStageName" value="网申提交">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">时间安排</label>
+                    <input type="text" class="form-input" id="addScheduleTime" placeholder="例如：2026-08-25 15:00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">会议信息 / 凭据</label>
+                    <input type="text" class="form-input" id="addMeetingInfo" placeholder="例如：腾讯会议 111-222-333">
+                </div>
+                <div style="margin-top: 16px;">
+                    <button class="btn-ticket-primary" id="btnSubmitAddModal" style="width: 100%;">✓ 录入投递单</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. 全局 Toast 胶囊通知 -->
+    <div class="toast-container" id="globalToast">
+        <div class="toast-capsule">
+            <span id="toastIcon">✨</span>
+            <span id="toastMessage">操作成功</span>
+        </div>
+    </div>
+
+    <!-- 脚本引入 -->
+    <script src="/config.js" onerror="void(0)"></script>
+    <script src="supabase.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
