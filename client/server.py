@@ -3,7 +3,7 @@ import sys
 import json
 import logging
 import threading
-from flask import Flask, send_from_directory, Response, request, jsonify
+from flask import Flask, send_from_directory, Response, request, jsonify, redirect
 
 app = Flask(__name__, static_folder=None)
 
@@ -11,6 +11,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
 WIDGET_DIR = os.path.join(BASE_DIR, 'widget')
 ADMIN_DIR = os.path.join(BASE_DIR, 'admin')
+MOBILE_DIR = os.path.join(PROJECT_DIR, 'mobile', 'src')
 
 # 窗口唤醒回调函数 (由 main.py 注册)
 SHOW_WINDOW_CALLBACK = None
@@ -142,8 +143,11 @@ def shutdown_all_api():
     return jsonify({"success": True, "message": "所有服务已停止"})
 
 # --- 静态页面路由 ---
-@app.route('/')
 @app.route('/admin')
+def admin_redirect():
+    return redirect('/admin/')
+
+@app.route('/')
 @app.route('/admin/')
 def admin_index():
     return send_from_directory(ADMIN_DIR, 'index.html')
@@ -154,6 +158,9 @@ def admin_static(path):
     return send_from_directory(ADMIN_DIR, path)
 
 @app.route('/widget')
+def widget_redirect():
+    return redirect('/widget/')
+
 @app.route('/widget/')
 def widget_index():
     return send_from_directory(WIDGET_DIR, 'index.html')
@@ -161,6 +168,18 @@ def widget_index():
 @app.route('/widget/<path:path>')
 def widget_static(path):
     return send_from_directory(WIDGET_DIR, path)
+
+@app.route('/mobile')
+def mobile_redirect():
+    return redirect('/mobile/')
+
+@app.route('/mobile/')
+def mobile_index():
+    return send_from_directory(MOBILE_DIR, 'index.html')
+
+@app.route('/mobile/<path:path>')
+def mobile_static(path):
+    return send_from_directory(MOBILE_DIR, path)
 
 @app.route('/<path:path>')
 def root_static(path):
