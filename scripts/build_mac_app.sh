@@ -4,7 +4,7 @@ set -e
 # 定位到项目根目录
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 APP_NAME="OfferPilot"
-VERSION="3.0.0"
+VERSION="3.3.0"
 BUILD_DIR="$PROJECT_DIR/dist"
 APP_BUNDLE="$BUILD_DIR/$APP_NAME.app"
 DMG_NAME="$APP_NAME-v$VERSION-macOS.dmg"
