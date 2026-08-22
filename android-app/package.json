@@ -1,0 +1,27 @@
+{
+  "name": "offerpilot-android",
+  "version": "3.3.0",
+  "private": true,
+  "description": "OfferPilot 求职全景智能助手 Android 移动端",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5173",
+    "build": "vite build",
+    "preview": "vite preview",
+    "cap:sync": "npx cap sync android",
+    "cap:open": "npx cap open android",
+    "cap:build": "vite build && npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.0",
+    "@capacitor/app": "^6.0.2",
+    "@capacitor/cli": "^6.2.0",
+    "@capacitor/core": "^6.2.0",
+    "@capacitor/haptics": "^6.0.2",
+    "@capacitor/local-notifications": "^6.1.1",
+    "@capacitor/preferences": "^6.0.3",
+    "@supabase/supabase-js": "^2.48.1"
+  },
+  "devDependencies": {
+    "vite": "^5.4.14"
+  }
+}

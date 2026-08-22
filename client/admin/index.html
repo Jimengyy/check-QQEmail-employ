@@ -86,10 +86,10 @@
                     </div>
                 </header>
 
-                <!-- 顶部 4 大 Bento 瓷感 KPI 指标卡 (支持点击联动筛选) -->
+                <!-- 顶部 4 大 Bento 瓷感 KPI 指标卡 (待办/结果客观状态维度) -->
                 <div class="bento-metrics-grid">
-                    <!-- Bento 1: 全部企业 (默认激活态) -->
-                    <div class="bento-card active" data-filter="all" id="kpi-card-all">
+                    <!-- Bento 1: 全部已建档企业 -->
+                    <div class="bento-card active" data-bento="all" id="kpi-card-all">
                         <div class="bento-card-header">
                             <span class="bento-label">🏢 全部已建档企业</span>
                             <span class="bento-status-pill pill-green" id="kpi-tag-all">当前查看</span>
@@ -100,11 +100,11 @@
                         </div>
                     </div>
 
-                    <!-- Bento 2: 待办日程 (笔试/面试) -->
-                    <div class="bento-card" data-filter="interview" id="kpi-card-interview">
+                    <!-- Bento 2: 待测评/投递/笔试/面试 -->
+                    <div class="bento-card" data-bento="todo" id="kpi-card-todo">
                         <div class="bento-card-header">
-                            <span class="bento-label">⏳ 待办面试 / 笔试</span>
-                            <span class="bento-status-pill pill-indigo">点击过滤 ➔</span>
+                            <span class="bento-label">⏳ 待测评/投递/笔试/面试</span>
+                            <span class="bento-status-pill pill-indigo" id="kpi-tag-todo">点击过滤 ➔</span>
                         </div>
                         <div class="bento-card-body">
                             <div class="bento-value text-indigo" id="metric-active-stages">0</div>
@@ -112,11 +112,11 @@
                         </div>
                     </div>
 
-                    <!-- Bento 3: 等待结果 -->
-                    <div class="bento-card" data-filter="waiting" id="kpi-card-waiting">
+                    <!-- Bento 3: 等待结果中 -->
+                    <div class="bento-card" data-bento="waiting" id="kpi-card-waiting">
                         <div class="bento-card-header">
-                            <span class="bento-label">🎯 完结等待结果</span>
-                            <span class="bento-status-pill pill-amber">点击过滤 ➔</span>
+                            <span class="bento-label">🎯 等待结果中</span>
+                            <span class="bento-status-pill pill-amber" id="kpi-tag-waiting">点击过滤 ➔</span>
                         </div>
                         <div class="bento-card-body">
                             <div class="bento-value text-amber" id="metric-waiting-results">0</div>
@@ -124,11 +124,11 @@
                         </div>
                     </div>
 
-                    <!-- Bento 4: 已获录用 -->
-                    <div class="bento-card" data-filter="offer" id="kpi-card-offer">
+                    <!-- Bento 4: 已录用 -->
+                    <div class="bento-card" data-bento="offer" id="kpi-card-offer">
                         <div class="bento-card-header">
-                            <span class="bento-label">🏆 已获录用 / Offer</span>
-                            <span class="bento-status-pill pill-emerald">点击过滤 ➔</span>
+                            <span class="bento-label">🏆 已录用</span>
+                            <span class="bento-status-pill pill-emerald" id="kpi-tag-offer">点击过滤 ➔</span>
                         </div>
                         <div class="bento-card-body">
                             <div class="bento-value text-emerald" id="metric-offer-count">0</div>
@@ -137,15 +137,15 @@
                     </div>
                 </div>
 
-                <!-- 辅助微过滤芯片栏 (支持更多细分与已归档) -->
+                <!-- 辅助微过滤芯片栏 (按当前流程进度匹配：全部、测评、笔试、面试、Offer、终止) -->
                 <div class="sub-filter-bar">
                     <div class="filter-chips">
-                        <button class="filter-chip active" data-filter="all">全部</button>
-                        <button class="filter-chip" data-filter="test">📝 笔试/测评</button>
-                        <button class="filter-chip" data-filter="interview">⏳ 面试中</button>
-                        <button class="filter-chip" data-filter="waiting">🎯 等待结果</button>
-                        <button class="filter-chip" data-filter="offer">🏆 录用/Offer</button>
-                        <button class="filter-chip" data-filter="archived">📦 已归档</button>
+                        <button class="filter-chip active" data-progress="all">全部</button>
+                        <button class="filter-chip" data-progress="assessment">📊 测评</button>
+                        <button class="filter-chip" data-progress="written_test">📝 笔试</button>
+                        <button class="filter-chip" data-progress="interview">⏳ 面试</button>
+                        <button class="filter-chip" data-progress="offer">🎉 Offer</button>
+                        <button class="filter-chip" data-progress="terminated">❌ 终止</button>
                     </div>
                 </div>
 
