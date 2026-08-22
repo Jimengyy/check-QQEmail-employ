@@ -24,7 +24,8 @@ let allApplications = [];
 let allStages = [];
 let appStagesMap = {}; // application_id -> [stages...]
 
-let currentFilter = 'all';
+let currentBentoFilter = 'all';       // 'all' | 'todo' | 'waiting' | 'offer' (上层待办/结果客观状态)
+let currentProgressFilter = 'all';    // 'all' | 'assessment' | 'written_test' | 'interview' | 'offer' | 'terminated' (下层当前流程进度阶段)
 let currentSearchQuery = '';
 let currentReviewCategory = 'all';
 
@@ -413,41 +414,51 @@ function setupEventListeners() {
         });
     });
 
-    // 2. 顶部 4 大 Bento 瓷感 KPI 卡片点击联动筛选
+    // 2. 顶部 4 大 Bento 瓷感 KPI 卡片点击 (待办/结果客观状态维度)
     document.querySelectorAll('.bento-card').forEach(card => {
         card.addEventListener('click', () => {
-            const filterVal = card.getAttribute('data-filter') || 'all';
-            document.querySelectorAll('.bento-card').forEach(c => c.classList.remove('active'));
-            card.classList.add('active');
+            const bentoKey = card.getAttribute('data-bento') || 'all';
+            currentBentoFilter = bentoKey;
+            currentProgressFilter = 'all'; // 切换状态维度时，重置下层阶段为全部
 
-            // 同步子筛选芯片状态
-            document.querySelectorAll('.filter-chips .filter-chip').forEach(chip => {
-                if (chip.getAttribute('data-filter') === filterVal) {
-                    chip.classList.add('active');
-                } else {
-                    chip.classList.remove('active');
+            // 同步 Bento 卡片高亮态与状态药丸
+            document.querySelectorAll('.bento-card').forEach(c => {
+                const isActive = (c.getAttribute('data-bento') === bentoKey);
+                c.classList.toggle('active', isActive);
+                const tag = c.querySelector('.bento-status-pill');
+                if (tag) {
+                    tag.textContent = isActive ? '当前查看' : '点击过滤 ➔';
                 }
             });
 
-            currentFilter = filterVal;
+            // 下层 Filter Chips 重置为“全部”高亮
+            document.querySelectorAll('.filter-chips .filter-chip').forEach(chip => {
+                chip.classList.toggle('active', chip.getAttribute('data-progress') === 'all');
+            });
+
             renderDashboard();
         });
     });
 
-    // 3. 辅助微过滤芯片栏
+    // 3. 辅助微过滤芯片栏点击 (按当前流程进度阶段维度匹配)
     document.querySelectorAll('.filter-chips .filter-chip').forEach(chip => {
         chip.addEventListener('click', () => {
-            document.querySelectorAll('.filter-chips .filter-chip').forEach(c => c.classList.remove('active'));
-            chip.classList.add('active');
-            const filterVal = chip.getAttribute('data-filter') || 'all';
-            currentFilter = filterVal;
+            const progressKey = chip.getAttribute('data-progress') || 'all';
+            currentProgressFilter = progressKey;
+            currentBentoFilter = 'all'; // 切换进度阶段时，重置上层状态为全部
 
-            // 同步顶部 Bento 卡片高亮态
-            document.querySelectorAll('.bento-card').forEach(card => {
-                if (card.getAttribute('data-filter') === filterVal) {
-                    card.classList.add('active');
-                } else {
-                    card.classList.remove('active');
+            // 下层 Filter Chips 激活态
+            document.querySelectorAll('.filter-chips .filter-chip').forEach(c => {
+                c.classList.toggle('active', c.getAttribute('data-progress') === progressKey);
+            });
+
+            // 上层 Bento 卡片重置为第1个激活
+            document.querySelectorAll('.bento-card').forEach(c => {
+                const isAll = (c.getAttribute('data-bento') === 'all');
+                c.classList.toggle('active', isAll);
+                const tag = c.querySelector('.bento-status-pill');
+                if (tag) {
+                    tag.textContent = isAll ? '当前查看' : '点击过滤 ➔';
                 }
             });
 
@@ -781,7 +792,40 @@ async function loadAllData() {
 }
 
 // ==========================================================================
-// 7. 顶部 4 大 KPI 数据指标卡动态计算
+// 🚀 求职流程进度分类器 (根据最新环节名称与整体状态精准匹配)
+// 无论是否已完成还是待参加，只要属于该流程环节，均归入该分类
+// ==========================================================================
+function getStageProgressCategory(app, latestStage) {
+    if (app && (app.overall_status === 'archived' || app.overall_status === 'failed')) return 'terminated';
+    if (latestStage && (latestStage.stage_status === 'archived' || latestStage.stage_status === 'failed')) return 'terminated';
+    const name = latestStage ? (latestStage.stage_name || '').trim() : (app ? (app.current_stage_name || '') : '');
+    if (name.includes('感谢信') || name.includes('终止') || name.includes('未通过') || name.includes('遗憾') || name.includes('淘汰') || name.includes('放弃') || name.includes('结束')) {
+        return 'terminated';
+    }
+
+    if (app && app.overall_status === 'offered') return 'offer';
+    if (latestStage && latestStage.stage_status === 'offered') return 'offer';
+    if (name.includes('Offer') || name.includes('offer') || name.includes('录用') || name.includes('意向') || name.includes('录取') || name.includes('签约') || name.includes('入职')) {
+        return 'offer';
+    }
+
+    if (name.includes('笔试') || name.includes('机考') || name.includes('机试') || name.includes('编程') || name.includes('代码测试') || name.includes('专业笔试')) {
+        return 'written_test';
+    }
+
+    if (name.includes('测评') || name.includes('性格') || name.includes('认知') || name.includes('综合测') || name.includes('心理测试') || (name.includes('测试') && !name.includes('笔试'))) {
+        return 'assessment';
+    }
+
+    if (name.includes('面') || name.includes('初试') || name.includes('复试') || name.includes('终审') || name.includes('加试') || name.includes('主管面')) {
+        return 'interview';
+    }
+
+    return 'other';
+}
+
+// ==========================================================================
+// 7. 顶部 4 大 KPI 数据指标卡动态计算 (待办/结果客观状态维度)
 // ==========================================================================
 function updateKPICards() {
     const totalCompaniesEl = document.getElementById('metric-total-companies');
@@ -791,34 +835,35 @@ function updateKPICards() {
 
     // 统计已审核放行（拥有非 pending/ignored 环节）且非归档的投递单
     const validApps = allApplications.filter(app => {
-        if (app.overall_status === 'archived') return false;
+        if (app.overall_status === 'archived' || app.overall_status === 'failed') return false;
         const stages = (app.stages || []).filter(s => s.stage_status !== 'ignored' && s.stage_status !== 'pending');
         return stages.length > 0;
     });
 
     const totalAppsCount = validApps.length;
-    let activeStagesCount = 0;
+    let todoCount = 0;
     let waitingResultsCount = 0;
     let offerCount = 0;
 
     validApps.forEach(app => {
-        const stages = (app.stages || []).filter(s => s.stage_status !== 'ignored' && s.stage_status !== 'pending');
+        const stages = (app.stages || []).filter(s => s.stage_status !== 'ignored' && s.stage_status !== 'pending')
+            .sort((a, b) => (a.seq || 1) - (b.seq || 1));
         if (stages.length === 0) return;
 
         const latestStage = stages[stages.length - 1];
-        const meta = getStageStatusMeta(latestStage, app);
+        const category = getStageProgressCategory(app, latestStage);
 
-        if (app.overall_status === 'offered' || meta.category === 'offer') {
+        if (category === 'offer' || app.overall_status === 'offered' || latestStage.stage_status === 'offered') {
             offerCount++;
-        } else if (latestStage.stage_status === 'awaiting_result' || meta.category === 'waiting') {
+        } else if (latestStage.stage_status === 'awaiting_result') {
             waitingResultsCount++;
-        } else if (latestStage.stage_status === 'scheduled' || meta.category === 'interview' || meta.category === 'test') {
-            activeStagesCount++;
+        } else if (latestStage.stage_status === 'scheduled') {
+            todoCount++;
         }
     });
 
     if (totalCompaniesEl) totalCompaniesEl.textContent = totalAppsCount;
-    if (activeStagesEl) activeStagesEl.textContent = activeStagesCount;
+    if (activeStagesEl) activeStagesEl.textContent = todoCount;
     if (waitingResultsEl) waitingResultsEl.textContent = waitingResultsCount;
     if (offerCountEl) offerCountEl.textContent = offerCount;
 }
@@ -858,11 +903,12 @@ function renderDashboard() {
         return;
     }
 
-    // 过滤逻辑 (搜索 & Filter Chips)
+    // 过滤逻辑 (搜索 & Bento 状态 & 流程进度 Filter Chips)
     const filteredApps = approvedApplications.filter(app => {
-        const stages = (app.stages || []).filter(s => s.stage_status !== 'ignored' && s.stage_status !== 'pending');
+        const stages = (app.stages || []).filter(s => s.stage_status !== 'ignored' && s.stage_status !== 'pending')
+            .sort((a, b) => (a.seq || 1) - (b.seq || 1));
         const latestStage = stages.length > 0 ? stages[stages.length - 1] : null;
-        const meta = getStageStatusMeta(latestStage, app);
+        const progressCategory = getStageProgressCategory(app, latestStage);
 
         // 文本模糊搜索 (支持公司、部门、岗位、环节)
         if (currentSearchQuery) {
@@ -876,13 +922,29 @@ function renderDashboard() {
             if (!matchComp && !matchDept && !matchPos && !matchStage && !matchInStages) return false;
         }
 
-        // 分类 Chip 过滤
-        if (currentFilter === 'all') return app.overall_status !== 'archived';
-        if (currentFilter === 'test') return stages.some(s => (s.stage_name || '').includes('笔试') || (s.stage_name || '').includes('测评'));
-        if (currentFilter === 'interview') return meta.category === 'interview';
-        if (currentFilter === 'waiting') return meta.category === 'waiting';
-        if (currentFilter === 'offer') return app.overall_status === 'offered' || meta.category === 'offer';
-        if (currentFilter === 'archived') return app.overall_status === 'archived';
+        // 1. 上层 Bento 状态维度过滤 (全部 / 待办 / 等待结果 / 已录用)
+        if (currentBentoFilter === 'all') {
+            if (currentProgressFilter !== 'terminated' && (app.overall_status === 'archived' || progressCategory === 'terminated')) return false;
+        } else if (currentBentoFilter === 'todo') {
+            if (!latestStage || latestStage.stage_status !== 'scheduled') return false;
+        } else if (currentBentoFilter === 'waiting') {
+            if (!latestStage || latestStage.stage_status !== 'awaiting_result') return false;
+        } else if (currentBentoFilter === 'offer') {
+            if (app.overall_status !== 'offered' && progressCategory !== 'offer' && (!latestStage || latestStage.stage_status !== 'offered')) return false;
+        }
+
+        // 2. 下层 Filter Chips 流程进度阶段过滤 (全部 / 测评 / 笔试 / 面试 / Offer / 终止)
+        if (currentProgressFilter === 'assessment') {
+            return progressCategory === 'assessment';
+        } else if (currentProgressFilter === 'written_test') {
+            return progressCategory === 'written_test';
+        } else if (currentProgressFilter === 'interview') {
+            return progressCategory === 'interview';
+        } else if (currentProgressFilter === 'offer') {
+            return progressCategory === 'offer';
+        } else if (currentProgressFilter === 'terminated') {
+            return progressCategory === 'terminated';
+        }
 
         return true;
     });
@@ -893,7 +955,8 @@ function renderDashboard() {
     }
 
     tbody.innerHTML = filteredApps.map(app => {
-        const stages = (app.stages || []).filter(s => s.stage_status !== 'ignored' && s.stage_status !== 'pending');
+        const stages = (app.stages || []).filter(s => s.stage_status !== 'ignored' && s.stage_status !== 'pending')
+            .sort((a, b) => (a.seq || 1) - (b.seq || 1));
         const latestStage = stages.length > 0 ? stages[stages.length - 1] : null;
         const meta = getStageStatusMeta(latestStage, app);
 

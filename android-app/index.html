@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>✦ OfferPilot · 求职全景智能助手</title>
+  <meta name="theme-color" content="#FAF8F5">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <div id="app" class="mobile-viewport">
+
+    <!-- ==================== 1. 主视图容器 ==================== -->
+    <div class="view-container">
+
+      <!-- ================= 视图 A: 求职全景看板大厅 (Dashboard) ================= -->
+      <section id="view-dashboard" class="tab-view active">
+        <!-- 顶栏 -->
+        <header class="app-topbar">
+          <div class="topbar-header-row">
+            <div class="brand-badge">
+              <span class="sparkle-icon">✦</span>
+              <span class="brand-text">OfferPilot ATS</span>
+            </div>
+            <button class="btn-create-header" id="btn-header-create-job">
+              <span class="plus-icon">＋</span> 新建求职
+            </button>
+          </div>
+
+          <!-- 搜索输入框 -->
+          <div class="search-bar-wrap">
+            <span class="search-lens">🔍</span>
+            <input type="text" id="dashboard-search-input" placeholder="搜索职位、应聘企业或环节..." autocomplete="off">
+            <button id="dashboard-search-clear" class="search-clear-x" style="display:none;">&times;</button>
+          </div>
+        </header>
+
+        <!-- 顶部 4 大 Bento 瓷感 KPI 指标卡 (待办/结果客观状态维度) -->
+        <div class="bento-grid-wrapper">
+          <!-- 卡片 1: 全部已建档企业 -->
+          <div class="bento-card active" data-bento="all" id="bento-card-all">
+            <div class="bento-header-row">
+              <span class="bento-title">🏢 全部已建档企业</span>
+              <span class="bento-status-tag pill-green" id="bento-tag-all">当前查看</span>
+            </div>
+            <div class="bento-body-row">
+              <div class="bento-number" id="stat-total-companies">0</div>
+              <div class="bento-sub">全流程建档</div>
+            </div>
+          </div>
+
+          <!-- 卡片 2: 待测评/投递/笔试/面试 -->
+          <div class="bento-card" data-bento="todo" id="bento-card-todo">
+            <div class="bento-header-row">
+              <span class="bento-title">⏳ 待测评/投递/笔试/面试</span>
+              <span class="bento-status-tag pill-indigo">点击过滤 ➔</span>
+            </div>
+            <div class="bento-body-row">
+              <div class="bento-number text-indigo" id="stat-active-interviews">0</div>
+              <div class="bento-sub text-indigo">急需准备</div>
+            </div>
+          </div>
+
+          <!-- 卡片 3: 等待结果中 -->
+          <div class="bento-card" data-bento="waiting" id="bento-card-waiting">
+            <div class="bento-header-row">
+              <span class="bento-title">🎯 等待结果中</span>
+              <span class="bento-status-tag pill-amber">点击过滤 ➔</span>
+            </div>
+            <div class="bento-body-row">
+              <div class="bento-number text-amber" id="stat-waiting-results">0</div>
+              <div class="bento-sub text-amber">等待官方反馈</div>
+            </div>
+          </div>
+
+          <!-- 卡片 4: 已录用 -->
+          <div class="bento-card" data-bento="offer" id="bento-card-offer">
+            <div class="bento-header-row">
+              <span class="bento-title">🏆 已录用</span>
+              <span class="bento-status-tag pill-emerald">点击过滤 ➔</span>
+            </div>
+            <div class="bento-body-row">
+              <div class="bento-number text-emerald" id="stat-offer-count">0</div>
+              <div class="bento-sub text-emerald">录用沟通</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 辅助微过滤芯片栏 (按当前流程进度匹配：全部、测评、笔试、面试、Offer、终止) -->
+        <div class="filter-chips-scroller">
+          <button class="chip-item active" data-progress="all">全部</button>
+          <button class="chip-item" data-progress="assessment">📊 测评</button>
+          <button class="chip-item" data-progress="written_test">📝 笔试</button>
+          <button class="chip-item" data-progress="interview">⏳ 面试</button>
+          <button class="chip-item" data-progress="offer">🎉 Offer</button>
+          <button class="chip-item" data-progress="terminated">❌ 终止</button>
+        </div>
+
+        <!-- 企业投递卡片列表容器 (下拉刷新 + 动态注入) -->
+        <div class="job-cards-list" id="dashboard-job-list">
+          <div class="empty-loading-state" id="dashboard-loading">
+            <div class="loading-spinner"></div>
+            <span>正在连接 Supabase 云端同步中...</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 视图 B: 邮件待审与准入门禁大厅 (Review) ================= -->
+      <section id="view-review" class="tab-view">
+        <header class="app-topbar review-topbar">
+          <h1 class="page-large-title">📬 邮件待审与准入门禁</h1>
+
+          <!-- 双页签分段控制器 -->
+          <div class="segmented-control-bar">
+            <button class="seg-btn active" id="seg-btn-pending" onclick="window.switchReviewTab('pending')">
+              <span>待审核 (<span id="badge-pending-count">0</span>)</span>
+            </button>
+            <button class="seg-btn" id="seg-btn-ignored" onclick="window.switchReviewTab('ignored')">
+              <span>已忽略 (<span id="badge-ignored-count">0</span>)</span>
+            </button>
+          </div>
+
+          <!-- 一键全选准入快捷按钮 -->
+          <button class="btn-batch-action" id="btn-batch-approve-all" onclick="window.batchApprovePending()">
+            <span class="bolt-icon">⚡️</span> 一键全选准入
+          </button>
+        </header>
+
+        <!-- 待审核卡片流容器 (支持滑动操作) -->
+        <div class="review-cards-list" id="review-pending-list">
+          <!-- 动态注入待审核白瓷卡片 -->
+        </div>
+
+        <!-- 已忽略卡片流容器 -->
+        <div class="review-cards-list" id="review-ignored-list" style="display:none;">
+          <!-- 动态注入已忽略柔灰卡片 -->
+        </div>
+      </section>
+
+      <!-- ================= 视图 C: 企业求职全景时间线 (Timeline) ================= -->
+      <section id="view-timeline" class="tab-view">
+        <header class="app-topbar timeline-topbar">
+          <!-- 全景时间快速搜索栏 -->
+          <div class="timeline-search-wrap">
+            <span class="timeline-search-lens">🔍</span>
+            <input type="text" id="timeline-search-input" placeholder="搜索已建档企业 / 岗位..." autocomplete="off" spellcheck="false">
+            <button class="search-clear-x" id="timeline-search-clear" style="display:none;">✕</button>
+          </div>
+
+          <!-- 横向企业快速滑动切换栏 (仅展示已建档准入的企业) -->
+          <div class="timeline-company-scroller" id="timeline-company-chips">
+            <!-- 动态注入已建档企业药丸 -->
+          </div>
+
+          <!-- 企业全景 Hero 仪式感展示区 -->
+          <div class="timeline-hero-display" id="timeline-hero-box">
+            <div class="hero-company-badge" id="timeline-header-badge">
+              <span class="badge-avatar" id="timeline-header-avatar">企</span>
+              <span class="badge-name" id="timeline-company-name">请选择企业</span>
+            </div>
+            <h1 class="hero-position-title" id="timeline-position-name">后端开发工程师</h1>
+            <div class="hero-status-pill-wrap">
+              <span class="hero-status-pill" id="timeline-status-badge">⏳ 正在同步最新状态...</span>
+            </div>
+          </div>
+        </header>
+
+        <!-- 垂直发光时间轴节点容器 -->
+        <div class="timeline-scroll-area">
+          <div class="luminous-timeline-track" id="timeline-nodes-container">
+            <!-- 动态注入发光时间轴节点与气泡对话框卡片 -->
+          </div>
+        </div>
+
+        <!-- 底部固定浮动操作栏 -->
+        <div class="timeline-bottom-actions">
+          <button class="btn-floating-pill btn-advance" onclick="window.openManualModalForCurrent()">
+            <span class="action-icon">＋</span> 推进新环节
+          </button>
+          <button class="btn-floating-pill btn-edit" onclick="window.openEditModalForCurrent()">
+            <span class="action-icon">✏️</span> 修正环节档案
+          </button>
+        </div>
+      </section>
+
+      <!-- ================= 视图 D: 个人设置与云端中枢 (Settings) ================= -->
+      <section id="view-settings" class="tab-view">
+        <header class="app-topbar">
+          <h1 class="page-large-title">⚙️ 个人设置与云端中枢</h1>
+        </header>
+
+        <div class="settings-content-body">
+          <!-- 视觉主题与风格切换卡片 -->
+          <div class="settings-card">
+            <div class="card-section-header">
+              <span class="section-icon">🎨</span>
+              <div class="section-title-group">
+                <h3>视觉主题与风格切换</h3>
+                <p>Apple 极简白瓷与奶油琥珀发光流体视觉</p>
+              </div>
+            </div>
+
+            <div class="theme-selector-grid">
+              <div class="theme-option-card active" id="theme-card-creamy" onclick="window.switchAppTheme('creamy-luminous')">
+                <div class="theme-preview-dot theme-dot-creamy"></div>
+                <div class="theme-info-box">
+                  <div class="theme-name-text">✨ 奶油琥珀流光 (Creamy Luminous)</div>
+                  <div class="theme-desc-text">发光流光轨道、气泡对话卡片与琥珀漫反射光晕</div>
+                </div>
+                <span class="theme-check-icon">✓</span>
+              </div>
+
+              <div class="theme-option-card" id="theme-card-classic" onclick="window.switchAppTheme('classic-milktea')">
+                <div class="theme-preview-dot theme-dot-classic"></div>
+                <div class="theme-info-box">
+                  <div class="theme-name-text">🍃 经典温润白瓷 (Warm Milk-Tea)</div>
+                  <div class="theme-desc-text">极简纯白卡片、温润奶茶米白底色与深色柔影</div>
+                </div>
+                <span class="theme-check-icon">✓</span>
+              </div>
+            </div>
+          </div>
+          <!-- 数据库连接卡片 -->
+          <div class="settings-card">
+            <div class="card-section-header">
+              <span class="section-icon">⚡️</span>
+              <div class="section-title-group">
+                <h3>Supabase 云数据库连接</h3>
+                <p>多端 7x24h 实时同步与 DeepSeek 邮件云端存储</p>
+              </div>
+            </div>
+
+            <div class="form-group-mobile">
+              <label>Project URL (数据库公网 HTTPS 地址)</label>
+              <input type="text" id="cfg-supabase-url" placeholder="https://xxxxxxxx.supabase.co" spellcheck="false" autocomplete="off">
+            </div>
+
+            <div class="form-group-mobile">
+              <label>Anon Public Key (客户端公开公钥)</label>
+              <input type="password" id="cfg-supabase-key" placeholder="sb_publishable_..." spellcheck="false" autocomplete="off">
+            </div>
+
+            <div id="cfg-test-status" class="config-feedback-box"></div>
+
+            <div class="settings-actions-row">
+              <button class="btn-secondary-mobile" id="btn-test-connection" onclick="window.testSupabaseConnection()">⚡️ 测试连通性</button>
+              <button class="btn-primary-mobile" id="btn-save-connection" onclick="window.saveSupabaseConfig()">💾 保存并生效</button>
+            </div>
+            <div style="margin-top: 12px; text-align: center;">
+              <button class="btn-secondary-mobile" style="color: var(--accent-rose); border-color: rgba(225, 29, 72, 0.2); width: 100%; font-size: 0.8rem;" onclick="window.clearSupabaseConfig()">🗑️ 安全退出 / 清除本机保存的凭据</button>
+            </div>
+          </div>
+
+          <!-- 系统状态与 Realtime 遥测 -->
+          <div class="settings-card">
+            <div class="card-section-header">
+              <span class="section-icon">📡</span>
+              <div class="section-title-group">
+                <h3>实时同步遥测 (Realtime)</h3>
+                <p>WebSocket 毫秒级双向长连接</p>
+              </div>
+            </div>
+
+            <div class="telemetry-item-row">
+              <span class="telemetry-label">通道连接状态</span>
+              <span class="telemetry-value-tag" id="telemetry-status-tag">
+                <span class="pulse-indicator-dot" id="realtime-dot"></span>
+                <span id="realtime-text">正在连接...</span>
+              </span>
+            </div>
+
+            <div class="telemetry-item-row">
+              <span class="telemetry-label">本地数据缓存</span>
+              <span class="telemetry-value-tag" id="telemetry-cache-count">已缓存 0 项</span>
+            </div>
+
+            <div class="telemetry-item-row">
+              <span class="telemetry-label">客户端版本</span>
+              <span class="telemetry-value-tag">v3.3.0 (Android Native)</span>
+            </div>
+          </div>
+
+          <!-- 触感反馈与通知 -->
+          <div class="settings-card">
+            <div class="card-section-header">
+              <span class="section-icon">📳</span>
+              <div class="section-title-group">
+                <h3>交互与触感反馈</h3>
+                <p>手势滑动与准入时的微震动反馈</p>
+              </div>
+            </div>
+
+            <div class="toggle-row">
+              <span>启用 Haptic 触感微震动</span>
+              <label class="switch-control">
+                <input type="checkbox" id="chk-haptic-feedback" checked>
+                <span class="slider-toggle"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ==================== 2. 🧠 DeepSeek AI 解析详情抽屉 (BottomSheet) ==================== -->
+    <div class="bottom-sheet-overlay" id="ai-drawer-overlay" onclick="window.closeAIDrawer(event)">
+      <div class="bottom-sheet-container" id="ai-drawer-container">
+        <!-- 顶部拖拽横条把手 -->
+        <div class="sheet-drag-handle"></div>
+
+        <div class="sheet-header">
+          <div class="sheet-header-title">
+            <span class="ai-brain-icon">🧠</span>
+            <span class="sheet-title-text">DeepSeek AI 智能提炼分析</span>
+          </div>
+          <button class="sheet-close-btn" onclick="window.closeAIDrawerDirect()">&times;</button>
+        </div>
+
+        <div class="sheet-body-scroll">
+          <!-- 1. AI 结构化提炼分析要点卡片 -->
+          <div class="ai-analysis-porcelain-card" id="drawer-ai-bullet-points">
+            <!-- 动态注入黑色小圆点 bullet list -->
+          </div>
+
+          <!-- 2. 邮件原文片段卡片 -->
+          <div class="email-excerpt-porcelain-card">
+            <div class="excerpt-title">邮件参考：</div>
+            <div class="excerpt-content" id="drawer-email-raw-snippet">
+              <!-- 动态注入邮件正文片段 -->
+            </div>
+          </div>
+
+          <!-- 3. 会议代码与凭据卡片 -->
+          <div class="meeting-code-pill" id="drawer-meeting-pill" style="display:none;">
+            <div class="meeting-left">
+              <span class="meeting-app-icon">👥</span>
+              <span class="meeting-code-label" id="drawer-meeting-text">腾讯会议代码: 00000000</span>
+            </div>
+            <button class="btn-copy-code" id="drawer-btn-copy-meeting" onclick="window.copyMeetingCredentials()">
+              📋 复制
+            </button>
+          </div>
+        </div>
+
+        <!-- 底部两大动作按钮 -->
+        <div class="sheet-bottom-actions">
+          <button class="btn-sheet-approve" id="drawer-btn-approve" onclick="window.approveCurrentDrawerStage()">
+            <span class="bolt-icon">⚡️</span> 立即放行准入
+          </button>
+          <button class="btn-sheet-ignore" id="drawer-btn-ignore" onclick="window.ignoreCurrentDrawerStage()">
+            <span class="cross-icon">✕</span> 移入已忽略
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 3. ➕ 手动建档 / 推进新环节弹窗 ==================== -->
+    <div class="modal-overlay" id="manual-stage-modal" style="display:none;">
+      <div class="modal-card">
+        <div class="modal-top">
+          <div class="modal-title-row">
+            <span class="modal-icon">✨</span>
+            <h3>手动建档 / 推进求职环节</h3>
+          </div>
+          <button class="modal-close" onclick="window.closeManualModal()">&times;</button>
+        </div>
+
+        <div class="modal-form-body">
+          <div class="form-item-m">
+            <label>目标公司名称 <span class="req-star">*</span></label>
+            <input type="text" id="m-company" placeholder="例如：阿里巴巴、腾讯、字节跳动">
+          </div>
+
+          <div class="form-item-m">
+            <label>部门 / 事业群 (选填)</label>
+            <input type="text" id="m-dept" placeholder="例如：微信事业群、淘天集团">
+          </div>
+
+          <div class="form-item-m">
+            <label>投递岗位 / 主题</label>
+            <input type="text" id="m-position" placeholder="例如：后端开发工程师">
+          </div>
+
+          <div class="form-item-m">
+            <label>推进环节类型 <span class="req-star">*</span></label>
+            <div class="preset-chips-group">
+              <button type="button" class="p-chip" onclick="window.setMPreset('网申提交')">📬 网申提交</button>
+              <button type="button" class="p-chip" onclick="window.setMPreset('在线笔试')">📝 在线笔试</button>
+              <button type="button" class="p-chip" onclick="window.setMPreset('综合测评')">📊 综合测评</button>
+              <button type="button" class="p-chip" onclick="window.setMPreset('技术一面')">⏳ 技术一面</button>
+              <button type="button" class="p-chip" onclick="window.setMPreset('业务二面')">🎯 业务二面</button>
+              <button type="button" class="p-chip" onclick="window.setMPreset('总监终面')">🏆 总监终面</button>
+              <button type="button" class="p-chip" onclick="window.setMPreset('HR面')">👥 HR面</button>
+              <button type="button" class="p-chip chip-gold" onclick="window.setMPreset('录用意向/Offer')">🎉 录用Offer</button>
+            </div>
+            <input type="text" id="m-stage-name" placeholder="点击上方药丸或直接输入环节名称">
+          </div>
+
+          <div class="form-item-m">
+            <label>约定 / 通知时间 (选填)</label>
+            <input type="text" id="m-schedule-time" placeholder="例如：2026-08-25 14:00、明天 10:00">
+          </div>
+
+          <div class="form-item-m">
+            <label>会议凭据 / 地点 (选填)</label>
+            <input type="text" id="m-meeting" placeholder="例如：腾讯会议 888-999-123">
+          </div>
+
+          <div class="form-item-m">
+            <label>当前环节状态</label>
+            <div class="radio-card-group">
+              <label class="radio-card-item">
+                <input type="radio" name="m-status-radio" value="scheduled" checked>
+                <div class="radio-text">
+                  <div class="r-title">⏳ 待参加 / 待作答</div>
+                  <div class="r-desc">加入待办日程 & 推送首页提醒</div>
+                </div>
+              </label>
+              <label class="radio-card-item">
+                <input type="radio" name="m-status-radio" value="awaiting_result">
+                <div class="radio-text">
+                  <div class="r-title">🎯 已参加 / 等待结果</div>
+                  <div class="r-desc">本轮已完成，等待官方反馈</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div id="m-status-msg" class="feedback-msg"></div>
+        </div>
+
+        <div class="modal-footer-m">
+          <button class="btn-cancel-m" onclick="window.closeManualModal()">取消</button>
+          <button class="btn-submit-m" id="btn-m-submit" onclick="window.submitManualStage()">⚡️ 立即建档保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 4. ✏️ 环节与求职全字段自由修正弹窗 ==================== -->
+    <div class="modal-overlay" id="edit-stage-modal" style="display:none;">
+      <div class="modal-card">
+        <div class="modal-top">
+          <div class="modal-title-row">
+            <span class="modal-icon icon-edit">✏️</span>
+            <h3>修正求职环节与档案</h3>
+          </div>
+          <button class="modal-close" onclick="window.closeEditModal()">&times;</button>
+        </div>
+
+        <div class="modal-form-body">
+          <input type="hidden" id="e-stage-id">
+          <input type="hidden" id="e-app-id">
+
+          <div class="form-item-m">
+            <label>企业名称 <span class="req-star">*</span></label>
+            <input type="text" id="e-company">
+          </div>
+
+          <div class="form-item-m">
+            <label>所属部门 (选填)</label>
+            <input type="text" id="e-dept">
+          </div>
+
+          <div class="form-item-m">
+            <label>投递岗位</label>
+            <input type="text" id="e-position">
+          </div>
+
+          <div class="form-item-m">
+            <label>环节名称 <span class="req-star">*</span></label>
+            <div class="preset-chips-group">
+              <button type="button" class="p-chip" onclick="window.setEPreset('网申提交')">📬 网申提交</button>
+              <button type="button" class="p-chip" onclick="window.setEPreset('在线笔试')">📝 在线笔试</button>
+              <button type="button" class="p-chip" onclick="window.setEPreset('综合测评')">📊 综合测评</button>
+              <button type="button" class="p-chip" onclick="window.setEPreset('技术一面')">⏳ 技术一面</button>
+              <button type="button" class="p-chip" onclick="window.setEPreset('业务二面')">🎯 业务二面</button>
+              <button type="button" class="p-chip" onclick="window.setEPreset('HR面')">👥 HR面</button>
+              <button type="button" class="p-chip chip-gold" onclick="window.setEPreset('录用意向/Offer')">🎉 录用Offer</button>
+            </div>
+            <input type="text" id="e-stage-name">
+          </div>
+
+          <div class="form-item-m">
+            <label>客观流转状态 <span class="req-star">*</span></label>
+            <div class="radio-card-group vertical-radios">
+              <label class="radio-card-item">
+                <input type="radio" name="e-status-radio" value="scheduled">
+                <div class="radio-text">
+                  <div class="r-title">⏳ 收到通知待参加 / 待作答</div>
+                </div>
+              </label>
+              <label class="radio-card-item">
+                <input type="radio" name="e-status-radio" value="awaiting_result">
+                <div class="radio-text">
+                  <div class="r-title">📬 已参加 / 等待本轮结果</div>
+                </div>
+              </label>
+              <label class="radio-card-item">
+                <input type="radio" name="e-status-radio" value="passed">
+                <div class="radio-text">
+                  <div class="r-title">✅ 本轮已顺利通过</div>
+                </div>
+              </label>
+              <label class="radio-card-item">
+                <input type="radio" name="e-status-radio" value="offered">
+                <div class="radio-text">
+                  <div class="r-title text-emerald">🎉 正式斩获录用 / Offer</div>
+                </div>
+              </label>
+              <label class="radio-card-item">
+                <input type="radio" name="e-status-radio" value="archived">
+                <div class="radio-text">
+                  <div class="r-title text-muted">❌ 流程终止 / 感谢信 / 放弃</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-item-m">
+            <label>约定 / 通知时间 (选填)</label>
+            <input type="text" id="e-schedule-time">
+          </div>
+
+          <div class="form-item-m">
+            <label>会议凭据 / 地点 (选填)</label>
+            <input type="text" id="e-meeting">
+          </div>
+
+          <div class="form-item-m">
+            <label>备忘录与重点 (选填)</label>
+            <textarea id="e-notes" rows="2" placeholder="记录面试要点或自我复盘..."></textarea>
+          </div>
+
+          <div id="e-status-msg" class="feedback-msg"></div>
+        </div>
+
+        <div class="modal-footer-m footer-space-between">
+          <button class="btn-danger-m" onclick="window.deleteStageFromEdit()">🗑️ 删除环节</button>
+          <div class="right-btn-group">
+            <button class="btn-cancel-m" onclick="window.closeEditModal()">取消</button>
+            <button class="btn-submit-m" id="btn-e-submit" onclick="window.submitEditStage()">💾 保存修改</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 5. 底部毛玻璃导航栏 (Bottom Navigation Bar) ==================== -->
+    <nav class="bottom-nav-bar">
+      <button class="nav-btn active" data-target="view-dashboard" id="nav-btn-dashboard">
+        <span class="nav-icon">📊</span>
+        <span class="nav-title">控制台</span>
+      </button>
+
+      <button class="nav-btn" data-target="view-review" id="nav-btn-review">
+        <span class="nav-icon">📬</span>
+        <span class="nav-title">审核管理</span>
+        <span class="nav-badge-dot" id="nav-review-badge" style="display:none;">0</span>
+      </button>
+
+      <button class="nav-btn" data-target="view-timeline" id="nav-btn-timeline">
+        <span class="nav-icon">🗓️</span>
+        <span class="nav-title">全景时间</span>
+      </button>
+
+      <button class="nav-btn" data-target="view-settings" id="nav-btn-settings">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-title">个人设置</span>
+      </button>
+    </nav>
+
+    <!-- 全局 Toast 提示容器 -->
+    <div class="toast-container" id="app-toast-container"></div>
+
+  </div>
+
+  <!-- 脚本加载 -->
+  <script type="module" src="/src/app.js"></script>
+</body>
+</html>

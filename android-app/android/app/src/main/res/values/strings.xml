@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">OfferPilot</string>
+    <string name="title_activity_main">OfferPilot</string>
+    <string name="package_name">com.offerpilot.app</string>
+    <string name="custom_url_scheme">com.offerpilot.app</string>
+</resources>
