@@ -8,7 +8,7 @@
 [![Python Version](https://img.shields.io/badge/Python-3.9%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Database](https://img.shields.io/badge/Database-Supabase%20PostgreSQL-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com/)
 [![AI Engine](https://img.shields.io/badge/AI%20Engine-DeepSeek%20V3-4D6BFE?style=flat-square)](https://www.deepseek.com/)
-[![Platform](https://img.shields.io/badge/Platform-macOS%20Desktop%20%7C%20Web-000000?style=flat-square&logo=apple&logoColor=white)]()
+[![Platform](https://img.shields.io/badge/Platform-macOS%20Desktop%20%7C%20Web%20%7C%20Android%20Native-000000?style=flat-square&logo=android&logoColor=white)]()
 [![GitHub Actions](https://img.shields.io/badge/CI%2FCD-7x24h%20Cloud%20Sync-2088FF?style=flat-square&logo=github-actions&logoColor=white)](.github/workflows/sync.yml)
 
 <br/>
@@ -17,7 +17,7 @@
 
 <br/>
 
-[🌟 核心特性](#-核心特性) • [📐 系统架构全景](#-系统架构全景) • [🛠️ 新手部署全攻略 (必读)](#-从零到一新手极速部署指南-fork-零代码模式) • [🎮 客户端交互使用指引](#-客户端日常交互使用指引) • [🔄 状态生命周期与回退](#-任务状态全生命周期流转) • [📂 工程目录结构](#-工程目录结构) • [🔒 安全隔离](#-开源安全与机密隔离)
+[🌟 核心特性](#-核心特性) • [📐 系统架构全景](#-系统架构全景) • [🛠️ 新手极速部署指南](#-从零到一新手极速部署指南-fork-零代码模式) • [📱 移动端与 Android 原生部署](#-阶段四手机移动端--android-apk-极速使用指南) • [🎨 奶油琥珀流光双主题](#-视觉设计系统与双主题皮肤) • [📂 工程目录结构](#-工程目录结构) • [🔒 安全架构](#-开源安全与机密隔离)
 
 </div>
 
@@ -25,7 +25,7 @@
 
 ## 📖 项目简介
 
-**OfferPilot (求职全景智能助手 V3.2)** 专为求职季打造，自动化聚合分散在各大邮件中的笔试与面试通知，实现 **“云端 7x24h 静默抓取 + Mac 桌面透明挂件 + Web 全景看板”** 的无缝协同闭环。
+**OfferPilot (求职全景智能助手 V3.3)** 专为求职季打造，自动化聚合分散在各大邮箱中的笔试与面试通知，实现 **“云端 7x24h 静默抓取 + Mac 桌面透明挂件 + Web 全景中枢 + Android 原生移动端”** 的全端无缝协同闭环。
 
 ---
 
@@ -34,22 +34,22 @@
 <table width="100%">
   <tr>
     <td width="50%" valign="top">
-      <h4>🗄️ 主子表求职架构</h4>
-      <p>企业、部门与岗位物理隔离，笔试面试各轮次按时间线独立归档，多投不串线。</p>
+      <h4>🗄️ 标准 ATS 双层求职架构</h4>
+      <p>主表与环节子表物理隔离，各轮次时序归档，动态真实步进条 100% 按企业实际环节呈现。</p>
     </td>
     <td width="50%" valign="top">
-      <h4>🔝 最新进展置顶</h4>
-      <p>抽屉首屏直击当前最新待办，会议凭据一键复制与倒计时提醒，历史环节按序沉淀。</p>
+      <h4>📱 Android 原生与云端公网部署</h4>
+      <p>支持 Capacitor 原生打包为 APK 独立运行，支持 Netlify / Vercel 免费托管添加到手机桌面。</p>
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <h4>🔄 状态闭环与无损回退</h4>
-      <p>待办环节一键标为已参加；手误时支持一键撤销并安全回滚至上一轮进度。</p>
+      <h4>✨ 奶油琥珀流光 & 白瓷双主题</h4>
+      <p>内置「经典温润白瓷」与「奶油琥珀流光」双主题，发光轨道、气泡对话卡片与触感微震动。</p>
     </td>
     <td width="50%" valign="top">
-      <h4>💻 零常驻云抓取 + 桌面挂件</h4>
-      <p>GitHub Actions 云端静默提取，macOS 毛玻璃透明挂件毫秒级同步日程。</p>
+      <h4>🔍 全景时间线深度时序下钻</h4>
+      <p>企业横向滑动快速切换、全字段模糊搜索、腾讯会议一键复制与全字段无损自由修正。</p>
     </td>
   </tr>
 </table>
@@ -199,11 +199,43 @@ CREATE POLICY "Allow public read sync_state" ON sync_state FOR ALL USING (true) 
 
 ---
 
+### 📱 阶段四：手机移动端 & Android APK 极速使用指南 (跨平台随身看板)
+
+OfferPilot 深度支持手机移动端随身使用，即使电脑关机，出门在外用 4G/5G 也能秒级同步求职进度：
+
+#### 方案 A：免安装直接添加到手机主屏幕 (PWA / Web App 推荐，30秒搞定)
+1. **获取公网托管地址**：
+   * 将 `android-app/dist` 文件夹免费拖拽部署到 [Netlify Drop](https://app.netlify.com/drop)（生成如 `https://your-offerpilot.netlify.app`）；
+2. **手机浏览器打开并配置**：
+   * 手机在任何网络（4G/5G/Wi-Fi）下打开该网址；
+   * 点击右下角 **【个人设置】**，填入您的 Supabase URL 和 Key 并保存（手机本地沙盒持久化，零泄露风险）；
+3. **一键生成桌面 App 图标**：
+   * 点击手机浏览器菜单 ➡️ 选择 **【添加到主屏幕】**（或【安装应用】）；
+   * 手机桌面即刻生成 **OfferPilot 独立 App 图标**，全屏沉浸、无地址栏、支持触感震动！
+
+#### 方案 B：打包 Android 原生 APK 安装包
+* 本项目已构建好 Capacitor 原生 Android 工程（`android-app/android/`）；
+* 在 Android Studio 中打开该目录，点击 **`Build` ➔ `Build Bundle(s) / APK(s)` ➔ `Build APK(s)`** 即可一键生成 `app-debug.apk` 发送到安卓手机安装。
+
+---
+
+## 🎨 视觉设计系统与双主题皮肤
+
+OfferPilot 移动端内置 **双主题实时切换引擎**，支持在【个人设置】中自由切换：
+
+* **🍃 经典温润白瓷 (Warm Milk-Tea)**：
+  * Apple 极简纯净白瓷设计，纯净米白底色，适合白天高效处理邮件与列表分诊；
+* **✨ 奶油琥珀流光 (Creamy Luminous Amber)**：
+  * 暖奶油流光底色、左侧黄金琥珀发光轨道、双同心圆拟物呼吸发光节点；
+  * **气泡对话框白瓷卡片 (Speech Bubble Card)**，底部黄金漫反射氛围光与内嵌腾讯会议胶囊槽。
+
+---
+
 ## 🎮 客户端日常交互使用指引
 
-OfferPilot 针对 macOS 系统深度调优，带来了极其自然与丝滑的日常操作体验：
+OfferPilot 针对 macOS 与移动端系统深度调优，带来了极其自然与丝滑的日常操作体验：
 
-### 🔄 1. 双击开关机制（极简 Toggle 控制）
+### 🔄 1. Mac 双击开关机制（极简 Toggle 控制）
 * **双击打开**：未运行时，双击 `OfferPilot.app`（或双击开关应用），桌面右上角即刻浮现毛玻璃挂件，本地 Web 管理服务同步拉起，并发送系统通知：`🟢 OfferPilot：已在桌面启动`；
 * **再双击关闭**：在运行状态下，再次双击 `OfferPilot.app`（或开关应用），系统将**毫秒级彻底退出全部后台 Python 进程与 Web 服务**，并发送通知：`🔴 OfferPilot：已完全关闭`。
 
@@ -225,38 +257,39 @@ OfferPilot 针对 macOS 系统深度调优，带来了极其自然与丝滑的�
 
 ```text
 拉取招聘信息/
+├── 📱 android-app/                # 【移动端 App 与 Android 原生工程】
+│   ├── index.html                # 移动端 HTML 结构 (控制台/待审大厅/全景时间/设置)
+│   ├── package.json              # 移动端构建依赖与 Capacitor 插件
+│   ├── vite.config.js            # Vite 极速构建与 PWA 配置
+│   ├── capacitor.config.json     # Capacitor 原生打包配置
+│   ├── src/                      # 移动端业务源码 (主题引擎/全动态步进条/安全沙盒)
+│   ├── dist/                     # ⚡️ 最终生产构建包 (可直接拖拽部署到 Netlify/Vercel)
+│   └── android/                  # 🤖 完整的 Android Studio Gradle 原生工程
+│
 ├── ☁️ cloud/                      # 【云端抓取服务】
 │   └── worker.py                 # 云端邮件提取与 DeepSeek AI 解析引擎 (由 GitHub Actions 调用)
 │
-├── 💻 client/                     # 【客户端与本地服务】
+├── 💻 client/                     # 【Mac 客户端与本地服务】
 │   ├── main.py                   # Mac 原生透明桌面挂件宿主 (PyWebView + Cocoa 层级调优)
 │   ├── server.py                 # 本地轻量静态 Web 服务 (统一动态读取/注入用户配置)
-│   ├── widget/                   # 桌面透明挂件前端 (直连云端 + Realtime 监听 + 首次启动向导)
-│   │   ├── index.html
-│   │   ├── style.css
-│   │   ├── app.js
-│   │   └── supabase.js           # 零依赖自研轻量 Supabase 通信 SDK
+│   ├── widget/                   # 桌面透明挂件前端 (直连云端 + Realtime 监听)
 │   └── admin/                    # 全景管理控制台与审核大厅前端 (http://127.0.0.1:5555/)
-│       ├── index.html
-│       ├── style.css
-│       ├── app.js
-│       └── supabase.js
 │
 ├── 🛠️ scripts/                    # 【自动化与运维脚本】
 │   ├── toggle.sh                 # 桌面挂件一键启动 / 关闭脚本
 │   ├── start_web.sh              # 纯 Web 独立控制台启动脚本
-│   └── build_mac_app.sh          # 独立 OfferPilot.app 与 .dmg 安装镜像自动化构建打包脚本
+│   ├── build_mac_app.sh          # Mac 原生 .dmg 安装镜像打包脚本
+│   └── build_android_apk.sh      # 📱 Android 原生工程与静态资源一键构建同步脚本
 │
-├── 📖 docs/                       # 【设计文档与设计切图】
-│   ├── architecture_plan.md      # 跨端云原生架构设计实施方案
-│   └── assets/                   # 高清产品演示图 (JPG)、矢量架构图 (SVG) 与 Apple AppIcon.icns
+├── 📖 docs/                       # 【设计文档与切图】
+│   └── assets/                   # 产品演示图、架构图与 App 图标
 │
 ├── .github/workflows/
 │   └── sync.yml                  # ☁️ GitHub Actions 自动化定时工作流
 ├── ⚡️ 招聘助手开关.app             # 💻 macOS 桌面快捷双击开关程序
 ├── ⚙️ config.example.json         # 📄 公开配置样例模板
-├── 📦 requirements.txt           # 📦 客户端极简 Python 依赖 (仅 pywebview, flask, pyobjc)
-├── 🙈 .gitignore                 # 🔒 Git 忽略规则 (严格隔离私密 config.json)
+├── 📦 requirements.txt           # 📦 客户端极简 Python 依赖
+├── 🙈 .gitignore                 # 🔒 Git 忽略规则 (严格隔离私密配置)
 └── 📄 README.md                  # 📖 项目总览与使用说明
 ```
 
@@ -268,9 +301,11 @@ OfferPilot 针对 macOS 系统深度调优，带来了极其自然与丝滑的�
 
 1. **凭证物理隔离**：
    * 邮箱授权码与 DeepSeek API Key **仅保存在 GitHub Secrets** 中，绝对不落盘、不提交 Git。
-2. **本地配置受忽略保护**：
+2. **移动端方案 A 沙盒隔离**：
+   * 移动端代码中**完全零内置敏感凭据**，数据库连接信息 100% 由用户在手机设置中输入并保存于本地 LocalStorage 沙盒，支持随时一键清除退出。
+3. **本地配置受忽略保护**：
    * 本地真实的 `config.json` 已写入 [`.gitignore`](.gitignore)，开源上传时永远不会包含个人数据库与连接信息。
-3. **数据库行级安全 (RLS)**：
+4. **数据库行级安全 (RLS)**：
    * 客户端公开公钥仅允许安全地读取任务和更新状态，彻底杜绝物理删库、删表或篡改越权。
 
 ---
@@ -279,8 +314,9 @@ OfferPilot 针对 macOS 系统深度调优，带来了极其自然与丝滑的�
 
 * **云端抓取与 AI**：GitHub Actions, Python 3.11, IMAPlib, BeautifulSoup4, DeepSeek API (OpenAI SDK)
 * **数据库与实时中枢**：Supabase (PostgreSQL), PostgREST Gateway, Phoenix Channel WebSocket
+* **移动端与原生跨平台**：Capacitor 6, Vite, Vanilla JS, PWA, Neumorphism UI
 * **桌面端宿主**：Python 3, PyWebView, PyObjC (Cocoa / AppKit / Quartz)
-* **前端交互界面**：Vanilla HTML5, Modern CSS3 (Glassmorphism), ES6+ JavaScript
+* **前端交互界面**：Vanilla HTML5, Modern CSS3 (Warm Milk-Tea & Creamy Luminous)
 
 ---
 
