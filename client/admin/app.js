@@ -876,34 +876,13 @@ function renderDashboard() {
             if (!matchComp && !matchDept && !matchPos && !matchStage && !matchInStages) return false;
         }
 
-        // 分类 Chip 过滤 (全部、测评、笔试、面试、Offer、终止)
-        if (currentFilter === 'all') {
-            return app.overall_status !== 'archived';
-        }
-        if (currentFilter === 'eval') {
-            if (app.overall_status === 'archived') return false;
-            const isCurrentEval = (app.current_stage_name || '').includes('测评') || (latestStage && (latestStage.stage_name || '').includes('测评'));
-            const hasEval = stages.some(s => (s.stage_name || '').includes('测评'));
-            return isCurrentEval || hasEval;
-        }
-        if (currentFilter === 'test') {
-            if (app.overall_status === 'archived') return false;
-            const isCurrentTest = (app.current_stage_name || '').includes('笔试') || (app.current_stage_name || '').includes('机考') || (latestStage && ((latestStage.stage_name || '').includes('笔试') || (latestStage.stage_name || '').includes('机考')));
-            const hasTest = stages.some(s => (s.stage_name || '').includes('笔试') || (s.stage_name || '').includes('机考'));
-            return isCurrentTest || hasTest;
-        }
-        if (currentFilter === 'interview') {
-            if (app.overall_status === 'archived') return false;
-            const isCurrentInterview = (app.current_stage_name || '').includes('面') || (latestStage && (latestStage.stage_name || '').includes('面'));
-            const hasInterview = stages.some(s => (s.stage_name || '').includes('面'));
-            return isCurrentInterview || hasInterview;
-        }
-        if (currentFilter === 'offer') {
-            return app.overall_status === 'offered' || (app.current_stage_name || '').includes('Offer') || (app.current_stage_name || '').includes('录用') || (latestStage && ((latestStage.stage_name || '').includes('Offer') || (latestStage.stage_name || '').includes('录用')));
-        }
-        if (currentFilter === 'archived') {
-            return app.overall_status === 'archived' || (app.current_stage_name || '').includes('终止') || (app.current_stage_name || '').includes('感谢信') || (app.current_stage_name || '').includes('淘汰');
-        }
+        // 分类 Chip 过滤
+        if (currentFilter === 'all') return app.overall_status !== 'archived';
+        if (currentFilter === 'test') return stages.some(s => (s.stage_name || '').includes('笔试') || (s.stage_name || '').includes('测评'));
+        if (currentFilter === 'interview') return meta.category === 'interview';
+        if (currentFilter === 'waiting') return meta.category === 'waiting';
+        if (currentFilter === 'offer') return app.overall_status === 'offered' || meta.category === 'offer';
+        if (currentFilter === 'archived') return app.overall_status === 'archived';
 
         return true;
     });
