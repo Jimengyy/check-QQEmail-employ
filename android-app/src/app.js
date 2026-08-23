@@ -1200,6 +1200,24 @@ function initSettings() {
   const keyInput = document.getElementById('cfg-supabase-key');
   if (urlInput) urlInput.value = cfg.url;
   if (keyInput) keyInput.value = cfg.key;
+
+  // 初始化触感震动开关状态与实时切换监听
+  const chkHaptic = document.getElementById('chk-haptic-feedback');
+  if (chkHaptic) {
+    const isHapticEnabled = localStorage.getItem('offerpilot_haptic') !== 'false';
+    chkHaptic.checked = isHapticEnabled;
+
+    chkHaptic.addEventListener('change', (e) => {
+      const enabled = e.target.checked;
+      localStorage.setItem('offerpilot_haptic', enabled ? 'true' : 'false');
+      if (enabled) {
+        triggerHaptic('medium');
+        showToast('📳 已开启触感微震动');
+      } else {
+        showToast('🔇 已关闭触感微震动');
+      }
+    });
+  }
 }
 
 window.testSupabaseConnection = async function() {
