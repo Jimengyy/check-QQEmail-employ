@@ -1,0 +1,80 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - 'feat/**'
+      - 'fix/**'
+    paths:
+      - 'android-app/**'
+      - '.github/workflows/build_apk.yml'
+  release:
+    types: [published, created]
+  workflow_dispatch:
+
+jobs:
+  build-apk:
+    name: 🤖 编译 Android 原生 APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 检出仓库代码
+        uses: actions/checkout@v4
+
+      - name: ☕️ 设置 Java 17 环境 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 📱 设置 Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 🟢 设置 Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: android-app/package.json
+
+      - name: 📦 安装移动端前端依赖
+        working-directory: android-app
+        run: npm install
+
+      - name: ⚡️ 编译移动端生产资源
+        working-directory: android-app
+        run: npm run build
+
+      - name: 🔄 同步资源到 Android 原生工程
+        working-directory: android-app
+        run: npx cap sync android
+
+      - name: 🔧 赋予 Gradle 执行权限
+        run: chmod +x android-app/android/gradlew
+
+      - name: 🏗️ 编译 Android Debug APK
+        working-directory: android-app/android
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: 🏷️ 整理与重命名 APK 产物
+        run: |
+          mkdir -p output_apk
+          cp android-app/android/app/build/outputs/apk/debug/app-debug.apk output_apk/OfferPilot-android-debug.apk
+          echo "✅ APK 构建成功，文件详情:"
+          ls -lah output_apk/OfferPilot-android-debug.apk
+
+      - name: 📤 上传 APK 到 Actions Artifacts (供网页与手机直接下载)
+        uses: actions/upload-artifact@v4
+        with:
+          name: OfferPilot-Android-APK
+          path: output_apk/OfferPilot-android-debug.apk
+          retention-days: 30
+
+      - name: 🚀 自动挂载到 GitHub Release 附件列表 (Release 时自动触发)
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: output_apk/OfferPilot-android-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

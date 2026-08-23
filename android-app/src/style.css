@@ -949,12 +949,49 @@ body {
 }
 
 /* ==================== 7. 企业求职全景时间线 (Company Timeline) ==================== */
-.timeline-search-wrap {
-  position: relative;
-  width: 100%;
+.timeline-top-nav-row {
   display: flex;
   align-items: center;
+  gap: 8px;
   margin-bottom: 10px;
+  width: 100%;
+}
+
+.btn-timeline-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 38px;
+  padding: 0 12px 0 10px;
+  background: #FFFFFF;
+  border: 1px solid var(--border-porcelain);
+  border-radius: var(--radius-pill);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-main);
+  box-shadow: var(--shadow-porcelain);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.btn-timeline-back:active {
+  transform: scale(0.95);
+  background: var(--bg-card-secondary);
+}
+
+.back-arrow {
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.timeline-search-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
 }
 
 .timeline-search-lens {

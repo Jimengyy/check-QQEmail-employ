@@ -14,6 +14,7 @@ const state = {
   activeProgress: 'all',     // 'all' | 'assessment' | 'written_test' | 'interview' | 'offer' | 'terminated' (下层当前流程进度阶段维度)
   searchQuery: '',
   timelineSearchQuery: '',
+  dashboardScrollY: 0,       // 控制台精准滚动位置记忆 (px)
   reviewSubtab: 'pending',
   currentTimelineAppId: null,
   currentDrawerStageId: null,
@@ -95,6 +96,13 @@ function initNavigation() {
 }
 
 function switchToTab(tabId) {
+  // 1. 如果当前正在从控制台切走，精确记录当前的垂直滚动位置
+  const activeView = document.querySelector('.tab-view.active');
+  if (activeView && activeView.id === 'view-dashboard') {
+    state.dashboardScrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+  }
+
+  // 2. 切换 Tab 的激活状态
   document.querySelectorAll('.tab-view').forEach(view => view.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
 
@@ -103,7 +111,27 @@ function switchToTab(tabId) {
   
   if (targetView) targetView.classList.add('active');
   if (targetBtn) targetBtn.classList.add('active');
+
+  // 3. 智能滚动位置恢复机制
+  if (tabId === 'view-dashboard') {
+    // 切回控制台：无感恢复到上次浏览的精确坐标
+    requestAnimationFrame(() => {
+      window.scrollTo({
+        top: state.dashboardScrollY || 0,
+        behavior: 'instant'
+      });
+    });
+  } else {
+    // 切换到全景时间、待审大厅或设置时：顶部对齐
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
 }
+
+// 全景时间 ➔ 返回控制台
+window.backToDashboard = function() {
+  switchToTab('view-dashboard');
+  triggerHaptic('light');
+};
 
 // ==================== 3. 初始化与搜索过滤 ====================
 function initSearchAndFilters() {
