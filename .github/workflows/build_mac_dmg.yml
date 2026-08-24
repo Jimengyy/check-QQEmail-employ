@@ -12,8 +12,12 @@ on:
       - 'docs/assets/AppIcon.icns'
       - '.github/workflows/build_mac_dmg.yml'
   release:
-    types: [published, created]
+    types: [published]
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: write
