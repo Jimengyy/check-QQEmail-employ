@@ -4,11 +4,12 @@ set -e
 # 定位到项目根目录
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 APP_NAME="OfferPilot"
-VERSION="3.3.0"
+RAW_VER="${1:-3.4.0}"
+VERSION="${RAW_VER#v}"
 BUILD_DIR="$PROJECT_DIR/dist"
-APP_BUNDLE="$BUILD_DIR/$APP_NAME.app"
 DMG_NAME="$APP_NAME-v$VERSION-macOS.dmg"
 DMG_PATH="$BUILD_DIR/$DMG_NAME"
+APP_BUNDLE="$BUILD_DIR/$APP_NAME.app"
 
 echo "=========================================="
 echo "📦 开始构建零故障原生双击开关应用: $APP_NAME.app"
