@@ -13,6 +13,9 @@ on:
     types: [published, created]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-apk:
     name: 🤖 编译 Android 原生 APK
