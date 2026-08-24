@@ -7,10 +7,31 @@ from flask import Flask, send_from_directory, Response, request, jsonify
 
 app = Flask(__name__, static_folder=None)
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-PROJECT_DIR = os.path.abspath(os.path.join(BASE_DIR, '..'))
-WIDGET_DIR = os.path.join(BASE_DIR, 'widget')
-ADMIN_DIR = os.path.join(BASE_DIR, 'admin')
+if getattr(sys, 'frozen', False):
+    # PyInstaller 解包临时目录
+    BUNDLE_DIR = sys._MEIPASS
+    PROJECT_DIR = os.path.dirname(sys.executable)
+else:
+    BUNDLE_DIR = os.path.dirname(os.path.abspath(__file__))
+    PROJECT_DIR = os.path.abspath(os.path.join(BUNDLE_DIR, '..'))
+
+BASE_DIR = BUNDLE_DIR
+
+def find_static_dir(dir_name):
+    """智能兼容源码运行与 PyInstaller 打包后的多级目录结构"""
+    candidates = [
+        os.path.join(BUNDLE_DIR, dir_name),
+        os.path.join(BUNDLE_DIR, 'client', dir_name),
+        os.path.join(PROJECT_DIR, 'client', dir_name),
+        os.path.join(PROJECT_DIR, dir_name)
+    ]
+    for c in candidates:
+        if os.path.isdir(c):
+            return c
+    return os.path.join(BUNDLE_DIR, dir_name)
+
+WIDGET_DIR = find_static_dir('widget')
+ADMIN_DIR = find_static_dir('admin')
 
 # 窗口唤醒回调函数 (由 main.py 注册)
 SHOW_WINDOW_CALLBACK = None
@@ -28,6 +49,7 @@ def get_config_candidates():
         USER_CONFIG_PATH,
         os.path.join(PROJECT_DIR, 'config.json'),
         os.path.join(BASE_DIR, 'config.json'),
+        os.path.join(BUNDLE_DIR, 'config.json'),
         os.path.join(BASE_DIR, '..', 'config.json')
     ]
 

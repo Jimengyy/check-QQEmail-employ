@@ -1,0 +1,55 @@
+name: Build macOS DMG
+
+on:
+  push:
+    branches:
+      - main
+      - 'feat/**'
+      - 'fix/**'
+    paths:
+      - 'client/**'
+      - 'scripts/build_mac_app.sh'
+      - 'docs/assets/AppIcon.icns'
+      - '.github/workflows/build_mac_dmg.yml'
+  release:
+    types: [published, created]
+  workflow_dispatch:
+
+jobs:
+  build-mac:
+    name: 🍎 编译 macOS 原生 DMG 安装镜像
+    runs-on: macos-latest
+
+    steps:
+      - name: 📥 检出仓库代码
+        uses: actions/checkout@v4
+
+      - name: 🏗️ 运行打包脚本生成 .app 与 .dmg
+        run: |
+          TAG_OR_VER="${{ github.ref_name }}"
+          if [[ "$TAG_OR_VER" != v* ]]; then
+            TAG_OR_VER="v3.4.0"
+          fi
+          echo "🔨 正在使用版本标签: $TAG_OR_VER 构建 DMG..."
+          chmod +x scripts/build_mac_app.sh
+          bash scripts/build_mac_app.sh "$TAG_OR_VER"
+
+      - name: 🏷️ 校验构建产物
+        run: |
+          echo "✅ macOS 构建完成，产物列表:"
+          ls -lah dist/*.dmg
+
+      - name: 📤 上传 DMG 到 Actions Artifacts (供测试下载)
+        uses: actions/upload-artifact@v4
+        with:
+          name: OfferPilot-macOS-DMG
+          path: dist/*.dmg
+          retention-days: 30
+
+      - name: 🚀 自动挂载到 GitHub Release 附件列表 (Release 时自动触发)
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
