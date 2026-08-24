@@ -16,6 +16,7 @@ echo "📦 开始构建零故障原生双击开关应用: $APP_NAME.app"
 echo "=========================================="
 
 rm -rf "$APP_BUNDLE" "$DMG_PATH"
+mkdir -p "$BUILD_DIR"
 
 # 1. 使用 osacompile 生成轻量级 Applet
 osacompile -o "$APP_BUNDLE" -e '
