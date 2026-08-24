@@ -15,6 +15,9 @@ on:
     types: [published, created]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-mac:
     name: 🍎 编译 macOS 原生 DMG 安装镜像

@@ -14,6 +14,9 @@ on:
     types: [published, created]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-windows:
     name: 🪟 编译 Windows 独立免安装 EXE
