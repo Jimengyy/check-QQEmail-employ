@@ -81,7 +81,15 @@ header {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex: 1;
+    min-width: 0;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
+
+.header-left:active { cursor: grabbing; }
 
 .header-left h1 {
     font-size: 1.15rem;
@@ -528,4 +536,18 @@ footer {
 }
 .modal-footer-tip b {
     color: #94a3b8;
+}
+
+/* Feedback is visible even when the native bridge is unavailable. */
+.action-error:not([hidden]) {
+    position: fixed;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    z-index: 1100;
+    padding: 12px;
+    border-radius: 10px;
+    background: #302521;
+    color: #fff;
+    font-size: 12px;
 }

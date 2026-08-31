@@ -83,15 +83,97 @@ document.addEventListener('DOMContentLoaded', () => {
     btnCloseCfg.addEventListener('click', hideModal);
 
     const quitBtn = document.getElementById('quit-btn');
-    if (quitBtn) {
-        quitBtn.addEventListener('click', () => {
-            if (window.pywebview && window.pywebview.api && window.pywebview.api.close_widget) {
-                window.pywebview.api.close_widget();
-            } else {
-                window.close();
+    const adminBtn = document.getElementById('admin-btn');
+    const actionError = document.getElementById('action-error');
+    let actionErrorTimer;
+
+    function reportActionError(error) {
+        console.error(error);
+        actionError.textContent = error.message || String(error);
+        actionError.hidden = false;
+        clearTimeout(actionErrorTimer);
+        actionErrorTimer = setTimeout(() => { actionError.hidden = true; }, 6000);
+    }
+
+    async function callNative(method, ...args) {
+        // The bridge is injected asynchronously; an early click should not disappear.
+        const deadline = Date.now() + 3000;
+        while (!window.pywebview?.api?.[method]) {
+            if (Date.now() >= deadline) {
+                throw new Error('桌面接口尚未就绪，请稍后重试；网页模式不支持收起桌面挂件。');
+            }
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        return window.pywebview.api[method](...args);
+    }
+
+    // Only the title is draggable. Coalesce deltas while a native call is pending.
+    const dragRegion = document.querySelector('.widget-drag-region');
+    let dragPointer = null;
+    let lastX = 0, lastY = 0, pendingX = 0, pendingY = 0;
+    let moving = false;
+
+    async function flushMovement() {
+        if (moving || (!pendingX && !pendingY)) return;
+        moving = true;
+        const dx = pendingX, dy = pendingY;
+        pendingX = pendingY = 0;
+        try {
+            await callNative('move_widget', dx, dy);
+        } catch (error) {
+            pendingX = pendingY = 0;
+            dragPointer = null;
+            reportActionError(error);
+        } finally {
+            moving = false;
+            if (pendingX || pendingY) flushMovement();
+        }
+    }
+
+    dragRegion.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0 || dragPointer !== null || !window.pywebview) return;
+        dragPointer = event.pointerId;
+        lastX = event.screenX;
+        lastY = event.screenY;
+        dragRegion.setPointerCapture(event.pointerId);
+        event.preventDefault();
+    });
+    dragRegion.addEventListener('pointermove', (event) => {
+        if (event.pointerId !== dragPointer) return;
+        pendingX += event.screenX - lastX;
+        pendingY += event.screenY - lastY;
+        lastX = event.screenX;
+        lastY = event.screenY;
+        flushMovement();
+    });
+    for (const eventName of ['pointerup', 'pointercancel', 'lostpointercapture']) {
+        dragRegion.addEventListener(eventName, (event) => {
+            if (event.pointerId !== dragPointer) return;
+            dragPointer = null;
+            if (dragRegion.hasPointerCapture(event.pointerId)) {
+                dragRegion.releasePointerCapture(event.pointerId);
             }
         });
     }
+
+    quitBtn.addEventListener('click', async () => {
+        try {
+            await callNative('close_widget');
+        } catch (error) {
+            reportActionError(error);
+        }
+    });
+
+    adminBtn.addEventListener('click', async (event) => {
+        // A normal browser keeps the ordinary link behavior.
+        if (!window.pywebview) return;
+        event.preventDefault();
+        try {
+            await callNative('open_admin');
+        } catch (error) {
+            reportActionError(error);
+        }
+    });
 
     // 保存配置
     btnSaveCfg.addEventListener('click', async () => {
