@@ -2,7 +2,7 @@ name: Build Android APK
 
 on:
   release:
-    types: [published]
+    types: [published, edited]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
