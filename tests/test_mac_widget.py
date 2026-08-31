@@ -26,6 +26,7 @@ class WidgetInteractionTests(unittest.TestCase):
         options = self.webview.create_window.call_args.kwargs
         self.assertFalse(options['easy_drag'])
         self.assertTrue(options['focus'])
+        self.assertEqual(options['resizable'], not self.main.IS_MAC)
         self.assertEqual(options['url'], 'http://127.0.0.1:5567/widget')
         callback = before_show.__iadd__.call_args.args[0]
         appkit = types.SimpleNamespace(NSApp=MagicMock(), NSApplicationActivationPolicyAccessory=1,

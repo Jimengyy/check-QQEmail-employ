@@ -551,3 +551,20 @@ footer {
     color: #fff;
     font-size: 12px;
 }
+
+/* Outer padding is reserved for moving; content retains clicks and scrolling. */
+.widget-drag-edge {
+    position: fixed;
+    z-index: 1200;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.edge-top { top: 0; left: 0; right: 0; height: 12px; }
+.edge-bottom { bottom: 0; left: 0; right: 0; height: 12px; }
+.edge-left { top: 12px; bottom: 12px; left: 0; width: 12px; }
+.edge-right { top: 12px; bottom: 12px; right: 0; width: 12px; }
+.widget-drag-edge:hover { background: rgba(255, 255, 255, 0.06); }
+.widget-drag-edge.is-dragging,
+.widget-drag-region.is-dragging { cursor: grabbing; }

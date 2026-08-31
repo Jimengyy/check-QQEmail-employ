@@ -88,7 +88,8 @@ def start_app(port=5555):
         easy_drag=False,
         focus=True,
         on_top=False if IS_MAC else True,
-        resizable=True,
+        # macOS resize hit-zones otherwise steal the same border used for dragging.
+        resizable=not IS_MAC,
         js_api=api
     )
     api._window = window
