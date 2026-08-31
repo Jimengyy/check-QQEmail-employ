@@ -44,7 +44,7 @@ Apple 证书不是在 GitHub 发布下载的前提。发布 `vX.Y.Z` Release 时
 
 不要将上述内容写入代码、日志或提交记录。CI 在临时钥匙串中导入凭据，结束后删除该钥匙串和临时证书文件。
 
-CI 分别在 `macos-15`（arm64）和 `macos-15-intel`（x86_64）构建。公证模式依次执行嵌套代码签名、最终 App 签名、DMG 签名、Apple 公证、附加公证票据及镜像校验；未公证模式仍执行临时签名和完整性/运行环境检查。Mac、Windows、Android 三个平台只监听 Release 的 `published` 事件：普通 push、创建/合并 PR、只推送标签及手动 Run workflow 均不再触发打包。发布预发布版本（Pre-release）同样属于 published，会触发；保存草稿或仅编辑说明不会触发。邮件同步工作流的定时和手动触发保持不变。
+CI 分别在 `macos-15`（arm64）和 `macos-15-intel`（x86_64）构建。公证模式依次执行嵌套代码签名、最终 App 签名、DMG 签名、Apple 公证、附加公证票据及镜像校验；未公证模式仍执行临时签名和完整性/运行环境检查。Mac、Windows、Android 三个平台只监听 Release 的 `published` 和 `edited` 事件：普通 push、创建/合并 PR、只推送标签及手动 Run workflow 均不再触发打包。发布预发布版本（Pre-release）同样属于 published，会触发；更新已发布 Release 的标题或说明也会重新打包，保存草稿不会触发。邮件同步工作流的定时和手动触发保持不变。
 
 本地已配置证书及 notarytool keychain profile 时可使用：
 
@@ -72,7 +72,9 @@ PYTHON="$PWD/.venv/bin/python" bash scripts/build_mac_app.sh 3.4.2
 3. 从包含修复的最新 `main` 创建尚未使用的 `vX.Y.Z` 标签并点击 Publish release（保存草稿不会触发）。
 4. 等待两个架构构建完成，在该 Release 的 Assets 下载附件。
 
-旧标签仍指向旧代码，重新运行旧任务或仅编辑旧 Release 说明不会应用新工作流。若旧版本发布失败，合并修复后使用新的版本标签；不要为此强推改写旧标签。
+更新已发布 Release 时，会按该 Release 的标签重新构建，并更新同名安装包附件。连续更新同一版本时，进行中的旧构建会被取消，以最新一次为准；仅修改标题或说明也会消耗一次完整打包资源。
+
+标签仍固定到原提交，更新 Release 不会自动使用最新 main，也不会改变标签指向。旧标签若未包含 `edited` 触发配置，更新旧 Release 不会自动获得该能力；合并修复后，先从最新 main 发布一个新版本，之后该版本的 Update release 才能触发重建。不要为此强推改写旧标签。
 
 Release 最终由项目上传 4 个安装包：Android APK、M 系列 Mac DMG、Intel Mac DMG、Windows EXE。GitHub 自动提供的 Source code ZIP/TAR.GZ 仍会显示，它们不是额外的安装包。历史 Release 已有附件不会被这次配置修改自动删除。
 
