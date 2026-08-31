@@ -35,8 +35,14 @@ jobs:
       - name: 安装独立运行环境和打包依赖
         run: python -m pip install -r scripts/requirements-mac-build.txt
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: 回归测试（配置持久化与发布模式）
-        run: python -m unittest discover -s tests -p 'test_mac*.py' -v
+        run: |
+          python -m unittest discover -s tests -p 'test_mac*.py' -v
+          node --test tests/test_widget_drag.cjs
 
       - name: 选择 Release 签名模式（无凭据可发布未公证包）
         id: signing

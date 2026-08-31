@@ -107,54 +107,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return window.pywebview.api[method](...args);
     }
 
-    // Only the title is draggable. Coalesce deltas while a native call is pending.
-    const dragRegion = document.querySelector('.widget-drag-region');
-    let dragPointer = null;
-    let lastX = 0, lastY = 0, pendingX = 0, pendingY = 0;
-    let moving = false;
-
-    async function flushMovement() {
-        if (moving || (!pendingX && !pendingY)) return;
-        moving = true;
-        const dx = pendingX, dy = pendingY;
-        pendingX = pendingY = 0;
-        try {
-            await callNative('move_widget', dx, dy);
-        } catch (error) {
-            pendingX = pendingY = 0;
-            dragPointer = null;
-            reportActionError(error);
-        } finally {
-            moving = false;
-            if (pendingX || pendingY) flushMovement();
-        }
-    }
-
-    dragRegion.addEventListener('pointerdown', (event) => {
-        if (event.button !== 0 || dragPointer !== null || !window.pywebview) return;
-        dragPointer = event.pointerId;
-        lastX = event.screenX;
-        lastY = event.screenY;
-        dragRegion.setPointerCapture(event.pointerId);
-        event.preventDefault();
+    window.setupWidgetDragging({
+        regions: document.querySelectorAll('.widget-drag-region, .widget-drag-edge'),
+        enabled: () => Boolean(window.pywebview),
+        move: (dx, dy) => callNative('move_widget', dx, dy),
+        onError: reportActionError,
     });
-    dragRegion.addEventListener('pointermove', (event) => {
-        if (event.pointerId !== dragPointer) return;
-        pendingX += event.screenX - lastX;
-        pendingY += event.screenY - lastY;
-        lastX = event.screenX;
-        lastY = event.screenY;
-        flushMovement();
-    });
-    for (const eventName of ['pointerup', 'pointercancel', 'lostpointercapture']) {
-        dragRegion.addEventListener(eventName, (event) => {
-            if (event.pointerId !== dragPointer) return;
-            dragPointer = null;
-            if (dragRegion.hasPointerCapture(event.pointerId)) {
-                dragRegion.releasePointerCapture(event.pointerId);
-            }
-        });
-    }
 
     quitBtn.addEventListener('click', async () => {
         try {

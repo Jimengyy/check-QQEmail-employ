@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="/widget/style.css">
 </head>
 <body>
+    <!-- These 12px bands cover only the outer padding/border, never controls or scrollbars. -->
+    <div class="widget-drag-edge edge-top" title="按住边缘拖动窗口" aria-hidden="true"></div>
+    <div class="widget-drag-edge edge-right" title="按住边缘拖动窗口" aria-hidden="true"></div>
+    <div class="widget-drag-edge edge-bottom" title="按住边缘拖动窗口" aria-hidden="true"></div>
+    <div class="widget-drag-edge edge-left" title="按住边缘拖动窗口" aria-hidden="true"></div>
     <div class="widget-container" id="app">
         <header>
             <div class="header-left widget-drag-region" title="拖动此处移动挂件">
@@ -76,6 +81,7 @@
     </div>
     <script src="/config.js"></script>
     <script src="/widget/supabase.js"></script>
+    <script src="/widget/drag.js"></script>
     <script src="/widget/app.js"></script>
 </body>
 </html>
