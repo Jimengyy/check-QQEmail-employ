@@ -127,7 +127,8 @@ def save_config_api():
             json.dump(payload, f, indent=4, ensure_ascii=False)
 
         dev_config = os.path.join(PROJECT_DIR, 'config.json')
-        if os.path.exists(PROJECT_DIR) and os.access(PROJECT_DIR, os.W_OK):
+        # A frozen app must never write inside its signed bundle.
+        if not getattr(sys, 'frozen', False) and os.path.exists(PROJECT_DIR) and os.access(PROJECT_DIR, os.W_OK):
             try:
                 with open(dev_config, 'w', encoding='utf-8') as f:
                     json.dump(payload, f, indent=4, ensure_ascii=False)

@@ -2,13 +2,11 @@ name: Build macOS DMG
 
 on:
   push:
-    branches:
-      - main
-      - 'feat/**'
-      - 'fix/**'
+    branches: [main, 'feat/**', 'fix/**']
     paths:
       - 'client/**'
-      - 'scripts/build_mac_app.sh'
+      - 'scripts/*mac*'
+      - 'tests/test_mac_packaging.py'
       - 'docs/assets/AppIcon.icns'
       - '.github/workflows/build_mac_dmg.yml'
   release:
@@ -16,7 +14,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 permissions:
@@ -24,39 +22,94 @@ permissions:
 
 jobs:
   build-mac:
-    name: 🍎 编译 macOS 原生 DMG 安装镜像
-    runs-on: macos-latest
-
+    name: macOS DMG (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    runs-on: ${{ matrix.runner }}
     steps:
-      - name: 📥 检出仓库代码
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: 🏗️ 运行打包脚本生成 .app 与 .dmg
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: scripts/requirements-mac-build.txt
+
+      - name: 安装独立运行环境和打包依赖
+        run: python -m pip install -r scripts/requirements-mac-build.txt
+
+      - name: 回归测试（配置不得写入签名包）
+        run: python -m unittest discover -s tests -p test_mac_packaging.py -v
+
+      - name: 配置正式发布签名及公证（缺失时拒绝发布）
+        if: github.event_name == 'release'
+        env:
+          CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          SIGNING_IDENTITY: ${{ secrets.MACOS_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
         run: |
-          TAG_OR_VER="${{ github.ref_name }}"
-          if [[ "$TAG_OR_VER" != v* ]]; then
-            TAG_OR_VER="v3.4.0"
-          fi
-          echo "🔨 正在使用版本标签: $TAG_OR_VER 构建 DMG..."
-          chmod +x scripts/build_mac_app.sh
-          bash scripts/build_mac_app.sh "$TAG_OR_VER"
+          set -euo pipefail
+          for variable in CERTIFICATE_BASE64 CERTIFICATE_PASSWORD SIGNING_IDENTITY APPLE_ID APPLE_TEAM_ID APPLE_APP_PASSWORD; do
+            if [[ -z "${!variable}" ]]; then
+              echo "::error::缺少正式 Mac 发布凭据：$variable；不会上传未公证包。"
+              exit 1
+            fi
+          done
+          KEYCHAIN_PATH="$RUNNER_TEMP/offerpilot-signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 32)"
+          echo "::add-mask::$KEYCHAIN_PASSWORD"
+          printf '%s' "$CERTIFICATE_BASE64" | base64 --decode > "$RUNNER_TEMP/offerpilot-certificate.p12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$RUNNER_TEMP/offerpilot-certificate.p12" -P "$CERTIFICATE_PASSWORD" -t cert -f pkcs12 -k "$KEYCHAIN_PATH" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
+          xcrun notarytool store-credentials OfferPilotNotary --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" --password "$APPLE_APP_PASSWORD" --keychain "$KEYCHAIN_PATH"
+          echo "MACOS_SIGNING_IDENTITY=$SIGNING_IDENTITY" >> "$GITHUB_ENV"
+          echo "MACOS_NOTARY_PROFILE=OfferPilotNotary" >> "$GITHUB_ENV"
+          echo "MACOS_NOTARY_KEYCHAIN=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+          echo "REQUIRE_NOTARIZATION=1" >> "$GITHUB_ENV"
 
-      - name: 🏷️ 校验构建产物
+      - name: 构建、签名、验证镜像及内置运行环境
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          echo "✅ macOS 构建完成，产物列表:"
-          ls -lah dist/*.dmg
+          VERSION=3.4.1
+          if [[ "$EVENT_NAME" == release ]]; then VERSION="$REF_NAME"; fi
+          bash scripts/build_mac_app.sh "$VERSION"
 
-      - name: 📤 上传 DMG 到 Actions Artifacts (供测试下载)
+      - name: 上传测试/正式产物
         uses: actions/upload-artifact@v4
         with:
-          name: OfferPilot-macOS-DMG
-          path: dist/*.dmg
+          name: OfferPilot-macOS-${{ matrix.arch }}
+          path: |
+            dist/*.dmg
+            dist/*.sha256
+          if-no-files-found: error
           retention-days: 30
 
-      - name: 🚀 自动挂载到 GitHub Release 附件列表 (Release 时自动触发)
+      - name: 仅将通过公证和镜像校验的安装包上传 Release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.dmg
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            dist/*.dmg
+            dist/*.sha256
+          fail_on_unmatched_files: true
+
+      - name: 清理 CI 临时证书
+        if: always() && github.event_name == 'release'
+        run: |
+          security delete-keychain "$RUNNER_TEMP/offerpilot-signing.keychain-db" || true
+          rm -f "$RUNNER_TEMP/offerpilot-certificate.p12"
