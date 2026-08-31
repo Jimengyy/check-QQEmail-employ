@@ -9,16 +9,18 @@
 <body>
     <div class="widget-container" id="app">
         <header>
-            <div class="header-left">
+            <div class="header-left widget-drag-region" title="拖动此处移动挂件">
                 <h1>招聘任务</h1>
                 <div id="status-dot" class="online" title="云端连接正常 (Realtime 监听中)"></div>
             </div>
             <div class="header-actions">
                 <button id="settings-btn" class="icon-btn" title="配置数据库连接">⚙️</button>
-                <a href="http://127.0.0.1:5555/" target="_blank" class="icon-btn" title="打开审核大厅与看板">📊</a>
-                <button id="quit-btn" class="icon-btn quit-btn" title="退出挂件">✕</button>
+                <a id="admin-btn" href="/" target="_blank" rel="noopener" class="icon-btn" title="打开审核大厅与看板">📊</a>
+                <button id="quit-btn" class="icon-btn quit-btn" title="收起挂件（后台继续运行）">✕</button>
             </div>
         </header>
+
+        <div id="action-error" class="action-error" role="alert" hidden></div>
 
         <div class="main-content" id="main-content">
             <div class="section-header" id="pending-header">
