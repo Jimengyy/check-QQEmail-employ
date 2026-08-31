@@ -16,7 +16,7 @@ if [[ "$IDENTITY" != '-' && "$IDENTITY" != 'Developer ID Application: '* ]]; the
 fi
 if [[ "${REQUIRE_NOTARIZATION:-0}" == 1 ]]; then
     [[ "$IDENTITY" != '-' && -n "${MACOS_NOTARY_PROFILE:-}" ]] || {
-        echo '正式 Release 必须配置 Developer ID 签名和公证凭据，拒绝发布临时签名包。' >&2
+        echo '已要求公证，但缺少 Developer ID 签名或公证凭据；拒绝降级为未公证包。' >&2
         exit 1
     }
 fi
@@ -68,7 +68,7 @@ cp "$PROJECT_DIR/docs/assets/AppIcon.icns" "$APP_BUNDLE/Contents/Resources/apple
 
 if [[ "$IDENTITY" == '-' ]]; then
     codesign --force --sign - --timestamp=none "$APP_BUNDLE"
-    echo '注意：这是完整性有效但未公证的测试包，不代表通过 Gatekeeper。'
+    echo '注意：这是完整性有效但未公证的安装包，不代表通过 Gatekeeper。'
 else
     # PyInstaller has already signed the nested Python binaries inside-out.
     codesign --force --sign "$IDENTITY" --options runtime --timestamp "$APP_BUNDLE"
@@ -81,13 +81,26 @@ codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
 mkdir -p "$DMG_ROOT"
 ditto "$APP_BUNDLE" "$DMG_ROOT/OfferPilot.app"
 ln -s /Applications "$DMG_ROOT/Applications"
+INSTALL_NOTES="$WORK_DIR/$DMG_NAME.txt"
 if [[ "$SUFFIX" == '-unsigned' ]]; then
-    cat > "$DMG_ROOT/测试包说明.txt" <<'NOTICE'
-此包未完成 Apple 公证，仅用于开发测试，不是正式分发包。
-签名完整性通过不等于 Gatekeeper 信任；macOS 仍可能阻止首次打开。
-请使用经过 Developer ID 签名并公证的正式 Release，无需关闭系统安全保护。
+    cat > "$INSTALL_NOTES" <<'NOTICE'
+OfferPilot 未公证安装包（文件名含 -unsigned）
+此包内置 Python 和依赖，并通过签名完整性与运行环境检查，但未经过 Apple 公证。
+请只从项目官方 GitHub Release 下载并核对 SHA-256，不要对来源不明的包解除限制。
+安装：打开 DMG，将 OfferPilot.app 拖到 Applications。
+首次打开可能被 macOS 拦截。确认来源可信后，可在“系统设置 → 隐私与安全性”查看是否提供“仍要打开”。
+不同 macOS 版本或受管理设备可能不允许手动放行；请遵守设备管理策略，不要关闭全局 Gatekeeper。
+Apple 官方说明：https://support.apple.com/102445
+NOTICE
+else
+    cat > "$INSTALL_NOTES" <<'NOTICE'
+OfferPilot Apple 公证安装包
+此包内置 Python 和依赖。发布前必须完成 Developer ID 签名、Apple 公证及镜像校验。
+安装：打开 DMG，将 OfferPilot.app 拖到 Applications，首次打开时确认系统提示。
+请从项目官方 GitHub Release 下载并核对 SHA-256。
 NOTICE
 fi
+cp "$INSTALL_NOTES" "$DMG_ROOT/安装说明.txt"
 codesign --verify --deep --strict --verbose=2 "$DMG_ROOT/OfferPilot.app"
 hdiutil create -volname "OfferPilot-v$VERSION-$ARCH" -srcfolder "$DMG_ROOT" -format UDZO "$DMG_PATH"
 hdiutil verify "$DMG_PATH"
@@ -107,6 +120,7 @@ fi
 # Verify what users actually receive, not just the pre-DMG bundle.
 bash "$PROJECT_DIR/scripts/verify_mac_dmg.sh" "$DMG_PATH" "${REQUIRE_NOTARIZATION:-0}"
 cp "$DMG_PATH" "$PROJECT_DIR/dist/$DMG_NAME"
+cp "$INSTALL_NOTES" "$PROJECT_DIR/dist/$DMG_NAME.txt"
 (cd "$PROJECT_DIR/dist" && shasum -a 256 "$DMG_NAME" > "$DMG_NAME.sha256")
 echo "构建完成：$PROJECT_DIR/dist/$DMG_NAME"
 echo "构建记录与 App 保留在：$WORK_DIR"
