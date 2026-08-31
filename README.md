@@ -191,10 +191,10 @@ CREATE POLICY "Allow public read sync_state" ON sync_state FOR ALL USING (true) 
 Mac 桌面端专为日常沉浸办公设计，打造了 **极简毛玻璃透明桌面挂件 + 双击开关控制 + 7x24h 云端静默抓取** 的无感协同体验。
 
 ### 1. 📥 下载与安装
-1. 在本项目的 **[Releases 发行版页面](../../releases)** 下载与你芯片匹配的正式安装包：Apple Silicon（M 系列）选择 `OfferPilot-v<版本>-macOS-arm64.dmg`，Intel 选择 `OfferPilot-v<版本>-macOS-x86_64.dmg`。新版内置 Python 和依赖，无需安装开发环境；
+1. 在本项目的 **[Releases 发行版页面](https://github.com/MySoulForYou/check-QQEmail-employ/releases)** 下载与你芯片匹配的安装包：Apple Silicon（M 系列）选择文件名含 `macOS-arm64` 的 DMG，Intel 选择文件名含 `macOS-x86_64` 的 DMG。新版内置 Python 和依赖，无需安装开发环境；
 2. 双击打开 DMG 镜像，将 **`OfferPilot.app`** 拖拽到系统“应用程序 (Applications)”文件夹中。
 
-> 带 `-unsigned` 后缀的是未公证测试包，不等同于通过 macOS 安全校验的正式安装包。旧版 v3.4.0 的资源签名存在缺陷，重新下载同一旧版附件无法修复。构建、签名和发布配置见 [Mac 打包说明](docs/mac-packaging.md)。
+> 带 `-unsigned` 后缀的是未经过 Apple 公证的安装包，也可以在 Release 中发布下载；签名完整性通过不等于获得 Apple 信任，首次打开可能被 macOS 拦截。请先核对来源及 SHA-256，再参考附件中的安装说明；不要关闭全局安全保护。旧版 v3.4.0 的资源签名存在缺陷，重新下载同一旧版附件无法修复。构建、签名和发布配置见 [Mac 打包说明](docs/mac-packaging.md)。
 
 ### 2. ⚙️ 首次配置向导 (仅需 30 秒)
 1. 首次打开软件，桌面会自动浮现优雅的 **毛玻璃设置向导**；
