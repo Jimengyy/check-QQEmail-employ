@@ -1,17 +1,8 @@
 name: Build macOS DMG
 
 on:
-  push:
-    branches: [main, 'feat/**', 'fix/**']
-    paths:
-      - 'client/**'
-      - 'scripts/*mac*'
-      - 'tests/test_mac*.py'
-      - 'docs/assets/AppIcon.icns'
-      - '.github/workflows/build_mac_dmg.yml'
   release:
     types: [published]
-  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ github.event_name }}
@@ -49,7 +40,6 @@ jobs:
 
       - name: 选择 Release 签名模式（无凭据可发布未公证包）
         id: signing
-        if: github.event_name == 'release'
         env:
           CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE_BASE64 }}
           CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
@@ -89,31 +79,12 @@ jobs:
       - name: 构建、签名、验证镜像及内置运行环境
         env:
           REF_NAME: ${{ github.ref_name }}
-          EVENT_NAME: ${{ github.event_name }}
-        run: |
-          VERSION=3.4.1
-          if [[ "$EVENT_NAME" == release ]]; then VERSION="$REF_NAME"; fi
-          bash scripts/build_mac_app.sh "$VERSION"
-
-      - name: 上传安装包、校验文件和安装说明
-        uses: actions/upload-artifact@v4
-        with:
-          name: OfferPilot-macOS-${{ matrix.arch }}
-          path: |
-            dist/*.dmg
-            dist/*.sha256
-            dist/*.dmg.txt
-          if-no-files-found: error
-          retention-days: 30
+        run: bash scripts/build_mac_app.sh "$REF_NAME"
 
       - name: 将通过对应模式校验的安装包上传 Release
-        if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            dist/*.dmg
-            dist/*.sha256
-            dist/*.dmg.txt
+          files: dist/*.dmg
           fail_on_unmatched_files: true
 
       - name: 清理 CI 临时证书

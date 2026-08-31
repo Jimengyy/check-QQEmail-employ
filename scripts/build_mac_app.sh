@@ -2,7 +2,7 @@
 set -euo pipefail
 
 PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-RAW_VERSION="${1:-3.4.1}"
+RAW_VERSION="${1:-3.4.2}"
 VERSION="${RAW_VERSION#v}"
 [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo '版本号须为 x.y.z' >&2; exit 1; }
 [[ "$(uname -s)" == Darwin ]] || { echo '只能在 macOS 上构建' >&2; exit 1; }
@@ -81,12 +81,12 @@ codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
 mkdir -p "$DMG_ROOT"
 ditto "$APP_BUNDLE" "$DMG_ROOT/OfferPilot.app"
 ln -s /Applications "$DMG_ROOT/Applications"
-INSTALL_NOTES="$WORK_DIR/$DMG_NAME.txt"
+INSTALL_NOTES="$DMG_ROOT/安装说明.txt"
 if [[ "$SUFFIX" == '-unsigned' ]]; then
     cat > "$INSTALL_NOTES" <<'NOTICE'
 OfferPilot 未公证安装包（文件名含 -unsigned）
 此包内置 Python 和依赖，并通过签名完整性与运行环境检查，但未经过 Apple 公证。
-请只从项目官方 GitHub Release 下载并核对 SHA-256，不要对来源不明的包解除限制。
+请只从项目官方 GitHub Release 下载，不要对来源不明的包解除限制。
 安装：打开 DMG，将 OfferPilot.app 拖到 Applications。
 首次打开可能被 macOS 拦截。确认来源可信后，可在“系统设置 → 隐私与安全性”查看是否提供“仍要打开”。
 不同 macOS 版本或受管理设备可能不允许手动放行；请遵守设备管理策略，不要关闭全局 Gatekeeper。
@@ -97,10 +97,9 @@ else
 OfferPilot Apple 公证安装包
 此包内置 Python 和依赖。发布前必须完成 Developer ID 签名、Apple 公证及镜像校验。
 安装：打开 DMG，将 OfferPilot.app 拖到 Applications，首次打开时确认系统提示。
-请从项目官方 GitHub Release 下载并核对 SHA-256。
+请从项目官方 GitHub Release 下载。
 NOTICE
 fi
-cp "$INSTALL_NOTES" "$DMG_ROOT/安装说明.txt"
 codesign --verify --deep --strict --verbose=2 "$DMG_ROOT/OfferPilot.app"
 hdiutil create -volname "OfferPilot-v$VERSION-$ARCH" -srcfolder "$DMG_ROOT" -format UDZO "$DMG_PATH"
 hdiutil verify "$DMG_PATH"
@@ -120,7 +119,7 @@ fi
 # Verify what users actually receive, not just the pre-DMG bundle.
 bash "$PROJECT_DIR/scripts/verify_mac_dmg.sh" "$DMG_PATH" "${REQUIRE_NOTARIZATION:-0}"
 cp "$DMG_PATH" "$PROJECT_DIR/dist/$DMG_NAME"
-cp "$INSTALL_NOTES" "$PROJECT_DIR/dist/$DMG_NAME.txt"
-(cd "$PROJECT_DIR/dist" && shasum -a 256 "$DMG_NAME" > "$DMG_NAME.sha256")
+# Keep the checksum in build logs, not as another downloadable attachment.
+(cd "$PROJECT_DIR/dist" && shasum -a 256 "$DMG_NAME")
 echo "构建完成：$PROJECT_DIR/dist/$DMG_NAME"
 echo "构建记录与 App 保留在：$WORK_DIR"

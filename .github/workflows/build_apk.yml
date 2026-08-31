@@ -1,17 +1,8 @@
 name: Build Android APK
 
 on:
-  push:
-    branches:
-      - main
-      - 'feat/**'
-      - 'fix/**'
-    paths:
-      - 'android-app/**'
-      - '.github/workflows/build_apk.yml'
   release:
     types: [published]
-  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -79,7 +70,6 @@ jobs:
           retention-days: 30
 
       - name: 🚀 自动挂载到 GitHub Release 附件列表 (Release 时自动触发)
-        if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
           files: output_apk/OfferPilot-android-debug.apk
