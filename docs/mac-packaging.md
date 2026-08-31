@@ -10,12 +10,12 @@ v3.4.0 的脚本在 `osacompile` 生成临时签名后添加资源、更换图�
 python3 -m venv .venv
 .venv/bin/python -m pip install -r scripts/requirements-mac-build.txt
 .venv/bin/python -m unittest discover -s tests -p 'test_mac*.py' -v
-PYTHON="$PWD/.venv/bin/python" bash scripts/build_mac_app.sh 3.4.1
+PYTHON="$PWD/.venv/bin/python" bash scripts/build_mac_app.sh 3.4.2
 ```
 
-脚本按构建 Python 的架构输出 `dist/OfferPilot-v3.4.1-macOS-arm64-unsigned.dmg` 或 `x86_64-unsigned.dmg`，附带 SHA-256 校验文件。两种架构分别在对应机器构建，不把单架构 Python 标成通用应用。
+脚本按构建 Python 的架构输出 `dist/OfferPilot-v3.4.2-macOS-arm64-unsigned.dmg` 或 `x86_64-unsigned.dmg`，只输出 DMG；安装说明放在镜像内，SHA-256 记录在构建日志中。两种架构分别在对应机器构建，不把单架构 Python 标成通用应用。
 
-每次构建都在新的 `build/mac-<版本>-<架构>.*` 目录进行，保留旧构建，不批量删除文件夹。相同版本和架构成功构建后会更新 dist 中对应的 DMG 和校验文件。
+每次构建都在新的 `build/mac-<版本>-<架构>.*` 目录进行，保留旧构建，不批量删除文件夹。相同版本和架构成功构建后会更新 dist 中对应的 DMG。
 
 `-unsigned` 表示尚未公证（内部代码已做临时签名以保证完整性），macOS 仍可能拦截。不要通过关闭 Gatekeeper 解决正式分发问题。签名完整性检查通过也不能证明应用经过 Apple 公证。
 
@@ -27,7 +27,7 @@ Apple 证书不是在 GitHub 发布下载的前提。发布 `vX.Y.Z` Release 时
 - 六项完整：启用 Developer ID 签名和 Apple 公证；证书无效、公证未获 Accepted 或校验失败时停止，绝不自动降级。
 - 只配置了一部分：明确列出缺失的 Secret 名称并停止，不输出凭据值。请补齐，或移除这六项配置以明确选择未公证发布。
 
-两种模式都会上传两个架构各自的 DMG、`.sha256` 和 `.dmg.txt` 安装说明；镜像内也包含安装说明。未公证不等于签名损坏，但 macOS 首次打开仍可能拦截。确认下载来自可信项目后，参考 [Apple 官方说明](https://support.apple.com/102445) 在“隐私与安全性”中查看“仍要打开”；受管理设备可能禁止放行，不应绕过其策略或关闭全局 Gatekeeper。
+两种模式都只上传两个架构各自的 DMG；不再生成或上传独立 `.sha256`、`.dmg.txt` 附件，也不额外上传 Mac Artifact。安装说明保留在 DMG 内，SHA-256 可在构建日志中查阅。未公证不等于签名损坏，但 macOS 首次打开仍可能拦截。确认下载来自可信项目后，参考 [Apple 官方说明](https://support.apple.com/102445) 在“隐私与安全性”中查看“仍要打开”；受管理设备可能禁止放行，不应绕过其策略或关闭全局 Gatekeeper。
 
 ## 可选：配置 Apple 公证
 
@@ -44,7 +44,7 @@ Apple 证书不是在 GitHub 发布下载的前提。发布 `vX.Y.Z` Release 时
 
 不要将上述内容写入代码、日志或提交记录。CI 在临时钥匙串中导入凭据，结束后删除该钥匙串和临时证书文件。
 
-CI 分别在 `macos-15`（arm64）和 `macos-15-intel`（x86_64）构建。公证模式依次执行嵌套代码签名、最终 App 签名、DMG 签名、Apple 公证、附加公证票据及镜像校验；未公证模式仍执行临时签名和完整性/运行环境检查。分支 push 和手动 workflow_dispatch 仅产生未公证 Artifact，不上传 Release，也不使用发布私钥。
+CI 分别在 `macos-15`（arm64）和 `macos-15-intel`（x86_64）构建。公证模式依次执行嵌套代码签名、最终 App 签名、DMG 签名、Apple 公证、附加公证票据及镜像校验；未公证模式仍执行临时签名和完整性/运行环境检查。Mac、Windows、Android 三个平台只监听 Release 的 `published` 事件：普通 push、创建/合并 PR、只推送标签及手动 Run workflow 均不再触发打包。发布预发布版本（Pre-release）同样属于 published，会触发；保存草稿或仅编辑说明不会触发。邮件同步工作流的定时和手动触发保持不变。
 
 本地已配置证书及 notarytool keychain profile 时可使用：
 
@@ -52,7 +52,7 @@ CI 分别在 `macos-15`（arm64）和 `macos-15-intel`（x86_64）构建。公�
 MACOS_SIGNING_IDENTITY='Developer ID Application: Your Name (TEAMID)' \
 MACOS_NOTARY_PROFILE='YourNotaryProfile' \
 REQUIRE_NOTARIZATION=1 \
-PYTHON="$PWD/.venv/bin/python" bash scripts/build_mac_app.sh 3.4.1
+PYTHON="$PWD/.venv/bin/python" bash scripts/build_mac_app.sh 3.4.2
 ```
 
 若 profile 位于非默认钥匙串，额外设置 `MACOS_NOTARY_KEYCHAIN` 为该钥匙串路径。
@@ -67,9 +67,11 @@ PYTHON="$PWD/.venv/bin/python" bash scripts/build_mac_app.sh 3.4.1
 
 ## 正常发布顺序
 
-1. 提交并推送修复分支，在 Actions 中检查两个 Mac 构建。
+1. 在本地完成测试并提交、推送修复分支；此时不会自动打包。
 2. 通过 PR 合并到 `main`，不要把修复分支推送到 `main`。
 3. 从包含修复的最新 `main` 创建尚未使用的 `vX.Y.Z` 标签并点击 Publish release（保存草稿不会触发）。
 4. 等待两个架构构建完成，在该 Release 的 Assets 下载附件。
 
 旧标签仍指向旧代码，重新运行旧任务或仅编辑旧 Release 说明不会应用新工作流。若旧版本发布失败，合并修复后使用新的版本标签；不要为此强推改写旧标签。
+
+Release 最终由项目上传 4 个安装包：Android APK、M 系列 Mac DMG、Intel Mac DMG、Windows EXE。GitHub 自动提供的 Source code ZIP/TAR.GZ 仍会显示，它们不是额外的安装包。历史 Release 已有附件不会被这次配置修改自动删除。
